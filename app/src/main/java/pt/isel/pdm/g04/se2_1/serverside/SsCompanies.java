@@ -2,14 +2,15 @@ package pt.isel.pdm.g04.se2_1.serverside;
 
 import android.content.Context;
 
-import org.json.JSONException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 
-import pt.isel.pdm.g04.se2_1.R;
+import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
 import pt.isel.pdm.g04.se2_1.helpers.G4Http;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
-import pt.isel.pdm.g04.se2_1.helpers.jsonconversion.G4JsonConverterCompanies;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Company;
 
 /**
@@ -33,13 +34,11 @@ public class SsCompanies extends SsTemplate<Company> {
 
     @Override
     public Collection<Company> parseJson() {
-        Collection<Company> _companies = null;
-        try {
-            _companies = new G4JsonConverterCompanies(ctx).toCollection(mJson);
-        } catch (JSONException e) {
-            alertIOException(R.string.t_srv_unreachable);
-            G4Log.e(e.getMessage());
-        }
-        return _companies;
+        Gson gson = new GsonBuilder()
+                .setDateFormat(G4Defs.DATETIME_12_STRING_FORMAT)
+                .create();
+        Type collectionType = new TypeToken<Collection<Company>>() {
+        }.getType();
+        return gson.fromJson(mJson, collectionType);
     }
 }

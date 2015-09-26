@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 
 import pt.isel.pdm.g04.se2_1.R;
 import pt.isel.pdm.g04.se2_1.clientside.CsCompanies;
@@ -25,6 +26,8 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
     public static final String LBL_MONTH_TO = "month_to";
     public static final String LBL_DAY_TO = "day_to";
     public static final String LBL_CANCELLED = "cancelled";
+    public static final int STRIKE_VW = 0;
+    public static final int UN_STRIKE_VW = 1;
     public final int id;
     public final Company company; // Descreve a empresa afectada pela greve.
     public final String description; // Uma descrição da greve ("This is a strike description.");
@@ -47,9 +50,9 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
         this.submitter = submitter;
         this.company = company;
 
-        SimpleDateFormat _dateFormat = new SimpleDateFormat(G4Defs.MONTHDAY_4_STRING_FORMAT);
-        SimpleDateFormat _monthsDateFormat = new SimpleDateFormat(G4Defs.MONTH_3_STRING_FORMAT);
-        SimpleDateFormat _daysDateFormat = new SimpleDateFormat(G4Defs.DAY_2_STRING_FORMAT);
+        SimpleDateFormat _dateFormat = new SimpleDateFormat(G4Defs.MONTHDAY_4_STRING_FORMAT, Locale.getDefault());
+        SimpleDateFormat _monthsDateFormat = new SimpleDateFormat(G4Defs.MONTH_3_STRING_FORMAT, Locale.getDefault());
+        SimpleDateFormat _daysDateFormat = new SimpleDateFormat(G4Defs.DAY_2_STRING_FORMAT, Locale.getDefault());
         String _strikeFrom = _dateFormat.format(start_date);
         String _strikeTo = _dateFormat.format(end_date);
 
@@ -73,29 +76,66 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
                 builder.mSubmitter, builder.mCompany);
     }
 
+    // region HasId
+
     public static Builder builder() {
         return new Builder();
     }
 
+    // endregion HasId
+
+    // region Comparable
+
+    public static Strike build(Context ctx, Cursor cursor) throws ParseException {
+        int _colId, _colCompany, _colDescription, _colSource_link, _colStart_date, _colEnd_date,
+                _colAll_day, _colCancelled, _colSubmitter;
+
+        _colId = cursor.getColumnIndex(HgDbSchema.COL_ID);
+        _colCompany = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_COMPANY);
+        _colDescription = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DESCRIPTION);
+        _colSource_link = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SOURCE_LINK);
+        _colStart_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_FROM);
+        _colEnd_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_TO);
+        _colAll_day = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_ALL_DAY);
+        _colCancelled = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_CANCELLED);
+//        _colSubmitter = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SUBMITTER);
+
+        Strike result = null;
+        DateFormat dateFormat = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT, Locale.getDefault());
+        int _id = cursor.getInt(_colId);
+        Company _company = new CsCompanies(ctx).load_cbg(Integer.parseInt(cursor.getString(_colCompany)));
+        String _description = cursor.getString(_colDescription);
+        String _source_link = cursor.getString(_colSource_link);
+        Date _start_date = dateFormat.parse(cursor.getString(_colStart_date));
+        Date _end_date = dateFormat.parse(cursor.getString(_colEnd_date));
+        boolean _all_day = cursor.getInt(_colAll_day) > 0;
+        boolean _cancelled = cursor.getInt(_colCancelled) > 0;
+        Submitter _submitter = null;
+
+        result = builder()
+                .id(_id).company(_company).description(_description).source_link(_source_link)
+                .start_date(_start_date).end_date(_end_date).all_day(_all_day).cancelled(_cancelled)
+                .submitter(_submitter).build(ctx);
+        return result;
+    }
+
+    // endregion Comparable
+
+    // region Build from Cursor
+
     @Override
     public String toString() {
-        SimpleDateFormat _dateFormat = new SimpleDateFormat("MM-dd");
+        SimpleDateFormat _dateFormat = new SimpleDateFormat("MM-dd", Locale.getDefault());
         String strikeFrom = _dateFormat.format(start_date);
         String strikeTo = _dateFormat.format(end_date);
         return strikeFrom + (strikeFrom.equals(strikeTo) ? "" : " -> " + strikeTo) + " -> " +
                 company.name;
     }
 
-    // region HasId
-
     @Override
     public int getId() {
         return id;
     }
-
-    // endregion HasId
-
-    // region Comparable
 
     @Override
     public int compareTo(Strike another) {
@@ -115,45 +155,6 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
         int _submitterCompare = submitter == null ? 0 : submitter.compareTo(another.submitter);
         if (_submitterCompare != 0) return _submitterCompare;
         return 0;
-    }
-
-    // endregion Comparable
-
-    // region Build from Cursor
-
-    public static final int STRIKE_VW = 0;
-    public static final int UN_STRIKE_VW = 1;
-    public static Strike build(Context ctx, Cursor cursor) throws ParseException {
-        int _colId, _colCompany, _colDescription, _colSource_link, _colStart_date, _colEnd_date,
-                _colAll_day, _colCancelled, _colSubmitter;
-
-        _colId = cursor.getColumnIndex(HgDbSchema.COL_ID);
-        _colCompany = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_COMPANY);
-        _colDescription = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DESCRIPTION);
-        _colSource_link = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SOURCE_LINK);
-        _colStart_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_FROM);
-        _colEnd_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_TO);
-        _colAll_day = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_ALL_DAY);
-        _colCancelled = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_CANCELLED);
-//        _colSubmitter = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SUBMITTER);
-
-        Strike result = null;
-        DateFormat dateFormat = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
-        int _id = cursor.getInt(_colId);
-        Company _company = new CsCompanies(ctx).load_cbg(Integer.parseInt(cursor.getString(_colCompany)));
-        String _description = cursor.getString(_colDescription);
-        String _source_link = cursor.getString(_colSource_link);
-        Date _start_date = dateFormat.parse(cursor.getString(_colStart_date));
-        Date _end_date = dateFormat.parse(cursor.getString(_colEnd_date));
-        boolean _all_day = cursor.getInt(_colAll_day) > 0;
-        boolean _cancelled = cursor.getInt(_colCancelled) > 0;
-        Submitter _submitter = null;
-
-        result = builder()
-                .id(_id).company(_company).description(_description).source_link(_source_link)
-                .start_date(_start_date).end_date(_end_date).all_day(_all_day).cancelled(_cancelled)
-                .submitter(_submitter).build(ctx);
-        return result;
     }
 
     // endregion Build from Cursor

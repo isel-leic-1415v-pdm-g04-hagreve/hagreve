@@ -41,7 +41,7 @@ import pt.isel.pdm.g04.se2_1.helpers.G4Http;
 import pt.isel.pdm.g04.se2_1.helpers.G4Log;
 import pt.isel.pdm.g04.se2_1.helpers.G4SharedPreferences;
 import pt.isel.pdm.g04.se2_1.helpers.G4SyncRequirements;
-import pt.isel.pdm.g04.se2_1.helpers.jsonconversion.G4JsonConverterLogos;
+import pt.isel.pdm.g04.se2_1.helpers.jsonconversion.JsonConverterLogos;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 import pt.isel.pdm.g04.se2_1.provider.HgDbSchema;
 import pt.isel.pdm.g04.se2_1.serverside.SsCompanies;
@@ -69,12 +69,14 @@ public class HaGreveServices extends WakefulIntentService {
     //endregion
 
     public static final String LOGOS_TIMESTAMP = "logos_read";
+    private static final int STRIKE_COMING = 0;
+
+    // region External interface
+    private static final int STRIKE_TODAY = 1;
 
     public HaGreveServices() {
         super("HaGreveServices");
     }
-
-    // region External interface
 
     public static void startActionSynchronizeAndNotify(Context ctx) {
         HaGreveServices.startActionGetStrikes(ctx, false);
@@ -107,11 +109,19 @@ public class HaGreveServices extends WakefulIntentService {
         ctx.startService(_intent);
     }
 
+    // endregion External interface
+
+    // region Behaviour
+
     public static void startActionCheckStrikesInAdvance(Context ctx, boolean fromTomorrow) {
         int _until = G4SharedPreferences.getDefault(ctx).
                 getInt(SettingsActivity.SP_PRE_NOTIFICATION, G4Defaults.PRE_NOTIFICATION);
         startActionCheckStrikes(ctx, fromTomorrow ? 1 : _until, _until);
     }
+
+    // region Get
+
+    // region Old Gets (for All companies)
 
     public static void startActionCheckStrikesToday(Context ctx) {
         boolean _isCheckStrikes = G4SharedPreferences.getDefault(ctx).
@@ -119,9 +129,14 @@ public class HaGreveServices extends WakefulIntentService {
         if (_isCheckStrikes) startActionCheckStrikes(ctx, 0, 0);
     }
 
-    // endregion External interface
-
-    // region Behaviour
+    private static <T> Collection<Strike> getFilteredStrikes(Collection<T> items, Set<Integer> filter) {
+        Collection<Strike> _filteredStrikes = new LinkedList<>();
+        if (items == null || items.size() == 0 || !(items.iterator().next() instanceof Strike))
+            return _filteredStrikes;
+        for (Strike strike : (Collection<Strike>) items)
+            if (!filter.contains(strike.company.id)) _filteredStrikes.add(strike);
+        return _filteredStrikes;
+    }
 
     @Override
     protected void doWakefulWork(Intent intent) {
@@ -163,151 +178,6 @@ public class HaGreveServices extends WakefulIntentService {
         }
     }
 
-    // region Get
-
-    // region Old Gets (for All companies)
-
-    private class HandleActionGetStrikes extends HandleAction<Strike, SsStrikes, CsStrikes> {
-        @Override
-        protected SsStrikes getServerSide(Context ctx) {
-            return new SsSchStrikes(ctx);
-        }
-
-        @Override
-        protected CsStrikes getClientSide(Context ctx) {
-            return new CsStrikes(ctx);
-        }
-
-        @Override
-        protected boolean isAcceptable(Strike item) {
-            return item.end_date.compareTo(new Date()) >= 0;
-        }
-
-        @Override
-        protected String getCsSelection() {
-            return HgContract.Strikes.DATE_TO + " >= ?";
-        }
-
-        @Override
-        protected String[] getCsSelectionArguments() {
-            DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
-            return new String[]{df.format(new Date())};
-        }
-    }
-
-    private class HandleActionGetCompanies extends HandleAction<Company, SsCompanies, CsCompanies> {
-        @Override
-        protected SsCompanies getServerSide(Context ctx) {
-            return new SsCompanies(ctx);
-        }
-
-        @Override
-        protected CsCompanies getClientSide(Context ctx) {
-            return new CsCompanies(ctx);
-        }
-
-        @Override
-        protected boolean isAcceptable(Company item) {
-            return true;
-        }
-
-        @Override
-        protected String getCsSelection() {
-            return null;
-        }
-
-        @Override
-        protected String[] getCsSelectionArguments() {
-            return new String[0];
-        }
-    }
-
-    private abstract class HandleAction<T extends HasId & Comparable, S extends SsTemplate<T>, C extends CsTemplate<T>> {
-        protected abstract S getServerSide(Context ctx);
-
-        protected abstract C getClientSide(Context ctx);
-
-        protected abstract boolean isAcceptable(T item);
-
-        protected abstract String getCsSelection();
-
-        protected abstract String[] getCsSelectionArguments();
-
-        protected boolean doWork() {
-            return doWork(false);
-        }
-
-        protected boolean doWork(boolean isNotify) {
-            boolean _result = false;
-            try {
-                Collection<T> _ssItems = getServerSide(HaGreveServices.this).retrieveJson().parseJson();
-                C _csItems = getClientSide(HaGreveServices.this);
-                Map<Integer, T> _referenceMap = new HashMap<>();
-                Map<Integer, T> _toDelete = new HashMap<>();
-                Collection<T> _items = _csItems.load_cbg(getCsSelection(), getCsSelectionArguments());
-                for (T item : _items) {
-                    _referenceMap.put(item.getId(), item);
-                    _toDelete.put(item.getId(), item);
-                }
-                Collection<T> _toReplace = new LinkedList<>();
-                Collection<T> _toInsert = new LinkedList<>();
-                for (T ssItem : _ssItems) {
-                    if (isAcceptable(ssItem)) {
-                        int _id = ssItem.getId();
-                        if (_referenceMap.containsKey(_id)) {
-                            if (_referenceMap.get(_id).compareTo(ssItem) != 0) _toReplace.add(ssItem);
-                            _toDelete.remove(_id);
-                        } else {
-                            T newItem = _csItems.refactor(ssItem, _items);
-                            _toInsert.add(newItem);
-                        }
-                    }
-                }
-                int _toDeleteCount = _toDelete.size();
-                int _toReplaceCount = _toReplace.size();
-                int _toInsertCount = _toInsert.size();
-                G4Log.i("to delete: " + _toDeleteCount +
-                        "; to replace: " + _toReplaceCount +
-                        "; to insert: " + _toInsertCount +
-                        ".");
-                boolean _isToDelete = _toDeleteCount > 0;
-                boolean _isToReplace = _toReplaceCount > 0;
-                boolean _isToInsert = _toInsertCount > 0;
-                ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-                Set<Integer> _blockedCompanies = getBlockedCompanies();
-                if (_isToDelete) _csItems.prepareDeleteBatch(_toDelete.values(), ops);
-                if (_isToReplace) {
-                    _csItems.prepareUpdateBatch(_toReplace, ops);
-                    if (isNotify) {
-                        Collection<Strike> _filteredStrikes = getFilteredStrikes(_toReplace, _blockedCompanies);
-                        G4DisplayNotifications.notify(HaGreveServices.this, _filteredStrikes,
-                                G4DisplayNotifications.STRIKE_UPDATED);
-                    }
-                }
-                if (_isToInsert) {
-                    _csItems.prepareInsertBatch(_toInsert, ops);
-                    if (isNotify){
-                        G4DisplayNotifications.notify(HaGreveServices.this, (Collection<Strike>)_toInsert,
-                                G4DisplayNotifications.NEW_STRIKE);
-                    }
-                }
-                try {
-                    getContentResolver().applyBatch(HgContract.AUTHORITY, ops);
-                } catch (RemoteException | OperationApplicationException e) {
-                    Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                    G4Log.e("RemoteException occurred");
-                    e.printStackTrace();
-                }
-                _result = _isToDelete || _isToReplace || _isToInsert;
-            } catch (IOException | ParseException e) {
-                Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("IOException or ParseException occurred");
-                e.printStackTrace();
-            }
-            return _result;
-        }
-    }
-
     // endregion
 
     // region New Gets (for In use companies)
@@ -332,7 +202,7 @@ public class HaGreveServices extends WakefulIntentService {
             Date _logosUpdateTimestamp = getTimestamp(LOGOS_TIMESTAMP);
             if (! forceUpdate && _logosUpdateTimestamp.compareTo(_serverLastUpdate) >= 0) return;
             String _jsonArrayString = _jsonObject.getString("map");
-            Collection<Logo> _logos = new G4JsonConverterLogos(this).toCollection(_jsonArrayString);
+            Collection<Logo> _logos = new JsonConverterLogos(this).toCollection(_jsonArrayString);
             for (Logo logo : _logos) {
                 if (ids.contains(logo.id)) {
                     String _logoJsonString = new G4Http(this, LOGOS_BASEURL, LOGOS_PATH, logo.path_link).getString();
@@ -491,19 +361,188 @@ public class HaGreveServices extends WakefulIntentService {
         return _choices;
     }
 
-    private static <T> Collection<Strike> getFilteredStrikes(Collection<T> items, Set<Integer> filter) {
-        Collection<Strike> _filteredStrikes = new LinkedList<>();
-        if (items == null || items.size() == 0 || !(items.iterator().next() instanceof Strike)) return _filteredStrikes;
-        for (Strike strike : ( Collection<Strike>)items) if (!filter.contains(strike.company.id)) _filteredStrikes.add(strike);
-        return _filteredStrikes;
+    private void setTimestamp(String tag) {
+        G4SharedPreferences.getDefault(this).edit().putLong(tag, new Date().getTime()).commit();
     }
 
     // endregion
 
     // region Check
 
-    private static final int STRIKE_COMING = 0;
-    private static final int STRIKE_TODAY = 1;
+    private Date getTimestamp(String tag) {
+        return new Date(G4SharedPreferences.getDefault(this).getLong(tag, 0));
+    }
+
+    private Date toDate(String dateString) {
+        DateFormat _df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
+        Date _date;
+        try {
+            _date = _df.parse(dateString);
+        } catch (ParseException e) {
+            _date = new Date(0);
+        }
+        return _date;
+    }
+
+    private int compareTimestamp(String tag, String dateString) {
+        return compareTimestamp(tag, toDate(dateString));
+    }
+
+    // endregion
+
+    // endregion
+
+    // region internal support methods
+
+    private int compareTimestamp(String tag, Date date) {
+        long _storedDateLong = G4SharedPreferences.getDefault(this).getLong(tag, 0);
+        Date _storedDate = new Date(_storedDateLong);
+        int _comparison = _storedDate.compareTo(date);
+        return _comparison;
+//        return new Date(G4SharedPreferences.getDefault(this).getLong(tag, 0)).compareTo(date);
+    }
+
+    private class HandleActionGetStrikes extends HandleAction<Strike, SsStrikes, CsStrikes> {
+        @Override
+        protected SsStrikes getServerSide(Context ctx) {
+            return new SsSchStrikes(ctx);
+        }
+
+        @Override
+        protected CsStrikes getClientSide(Context ctx) {
+            return new CsStrikes(ctx);
+        }
+
+        @Override
+        protected boolean isAcceptable(Strike item) {
+            return item.end_date.compareTo(new Date()) >= 0;
+        }
+
+        @Override
+        protected String getCsSelection() {
+            return HgContract.Strikes.DATE_TO + " >= ?";
+        }
+
+        @Override
+        protected String[] getCsSelectionArguments() {
+            DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
+            return new String[]{df.format(new Date())};
+        }
+    }
+
+    private class HandleActionGetCompanies extends HandleAction<Company, SsCompanies, CsCompanies> {
+        @Override
+        protected SsCompanies getServerSide(Context ctx) {
+            return new SsCompanies(ctx);
+        }
+
+        @Override
+        protected CsCompanies getClientSide(Context ctx) {
+            return new CsCompanies(ctx);
+        }
+
+        @Override
+        protected boolean isAcceptable(Company item) {
+            return true;
+        }
+
+        @Override
+        protected String getCsSelection() {
+            return null;
+        }
+
+        @Override
+        protected String[] getCsSelectionArguments() {
+            return new String[0];
+        }
+    }
+
+    private abstract class HandleAction<T extends HasId & Comparable, S extends SsTemplate<T>, C extends CsTemplate<T>> {
+        protected abstract S getServerSide(Context ctx);
+
+        protected abstract C getClientSide(Context ctx);
+
+        protected abstract boolean isAcceptable(T item);
+
+        protected abstract String getCsSelection();
+
+        protected abstract String[] getCsSelectionArguments();
+
+        protected boolean doWork() {
+            return doWork(false);
+        }
+
+        protected boolean doWork(boolean isNotify) {
+            boolean _result = false;
+            try {
+                Collection<T> _ssItems = getServerSide(HaGreveServices.this).retrieveJson().parseJson();
+                C _csItems = getClientSide(HaGreveServices.this);
+                Map<Integer, T> _referenceMap = new HashMap<>();
+                Map<Integer, T> _toDelete = new HashMap<>();
+                Collection<T> _items = _csItems.load_cbg(getCsSelection(), getCsSelectionArguments());
+                for (T item : _items) {
+                    _referenceMap.put(item.getId(), item);
+                    _toDelete.put(item.getId(), item);
+                }
+                Collection<T> _toReplace = new LinkedList<>();
+                Collection<T> _toInsert = new LinkedList<>();
+                for (T ssItem : _ssItems) {
+                    if (isAcceptable(ssItem)) {
+                        int _id = ssItem.getId();
+                        if (_referenceMap.containsKey(_id)) {
+                            if (_referenceMap.get(_id).compareTo(ssItem) != 0)
+                                _toReplace.add(ssItem);
+                            _toDelete.remove(_id);
+                        } else {
+                            T newItem = _csItems.refactor(ssItem, _items);
+                            _toInsert.add(newItem);
+                        }
+                    }
+                }
+                int _toDeleteCount = _toDelete.size();
+                int _toReplaceCount = _toReplace.size();
+                int _toInsertCount = _toInsert.size();
+                G4Log.i("to delete: " + _toDeleteCount +
+                        "; to replace: " + _toReplaceCount +
+                        "; to insert: " + _toInsertCount +
+                        ".");
+                boolean _isToDelete = _toDeleteCount > 0;
+                boolean _isToReplace = _toReplaceCount > 0;
+                boolean _isToInsert = _toInsertCount > 0;
+                ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+                Set<Integer> _blockedCompanies = getBlockedCompanies();
+                if (_isToDelete) _csItems.prepareDeleteBatch(_toDelete.values(), ops);
+                if (_isToReplace) {
+                    _csItems.prepareUpdateBatch(_toReplace, ops);
+                    if (isNotify) {
+                        Collection<Strike> _filteredStrikes = getFilteredStrikes(_toReplace, _blockedCompanies);
+                        G4DisplayNotifications.notify(HaGreveServices.this, _filteredStrikes,
+                                G4DisplayNotifications.STRIKE_UPDATED);
+                    }
+                }
+                if (_isToInsert) {
+                    _csItems.prepareInsertBatch(_toInsert, ops);
+                    if (isNotify) {
+                        G4DisplayNotifications.notify(HaGreveServices.this, (Collection<Strike>) _toInsert,
+                                G4DisplayNotifications.NEW_STRIKE);
+                    }
+                }
+                try {
+                    getContentResolver().applyBatch(HgContract.AUTHORITY, ops);
+                } catch (RemoteException | OperationApplicationException e) {
+                    Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
+                    G4Log.e("RemoteException occurred");
+                    e.printStackTrace();
+                }
+                _result = _isToDelete || _isToReplace || _isToInsert;
+            } catch (IOException | ParseException e) {
+                Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
+                G4Log.e("IOException or ParseException occurred");
+                e.printStackTrace();
+            }
+            return _result;
+        }
+    }
 
     private class HandleActionCheckStrikes {
         protected boolean doWork(int countFrom, int countUntil) {
@@ -563,43 +602,6 @@ public class HaGreveServices extends WakefulIntentService {
             }
             return _result;
         }
-    }
-
-    // endregion
-
-    // endregion
-
-    // region internal support methods
-
-    private void setTimestamp(String tag) {
-        G4SharedPreferences.getDefault(this).edit().putLong(tag, new Date().getTime()).commit();
-    }
-
-    private Date getTimestamp(String tag) {
-        return new Date(G4SharedPreferences.getDefault(this).getLong(tag, 0));
-    }
-
-    private Date toDate(String dateString) {
-        DateFormat _df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
-        Date _date;
-        try {
-            _date = _df.parse(dateString);
-        } catch (ParseException e) {
-            _date = new Date(0);
-        }
-        return _date;
-    }
-
-    private int compareTimestamp(String tag, String dateString) {
-        return compareTimestamp(tag, toDate(dateString));
-    }
-
-    private int compareTimestamp(String tag, Date date) {
-        long _storedDateLong = G4SharedPreferences.getDefault(this).getLong(tag, 0);
-        Date _storedDate = new Date(_storedDateLong);
-        int _comparison = _storedDate.compareTo(date);
-        return _comparison;
-//        return new Date(G4SharedPreferences.getDefault(this).getLong(tag, 0)).compareTo(date);
     }
 
     // endregion
