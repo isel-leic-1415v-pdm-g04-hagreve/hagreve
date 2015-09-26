@@ -1,0 +1,108 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="pt.isel.pdm.g04.se2_1.HelpActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+            android:text="@string/ah_tv_notification_icons" />
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TableRow>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="3dp"
+                    android:adjustViewBounds="true"
+                    android:src="@mipmap/strike_new" />
+
+                <TextView
+                    android:layout_margin="3dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ah_tv_new_strike" />
+            </TableRow>
+
+            <TableRow>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="3dp"
+                    android:adjustViewBounds="true"
+                    android:src="@mipmap/strike_cancelled" />
+
+                <TextView
+                    android:layout_margin="3dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ah_tv_strike_cancelled" />
+            </TableRow>
+
+            <TableRow>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="3dp"
+                    android:adjustViewBounds="true"
+                    android:src="@mipmap/strike_updated" />
+
+                <TextView
+                    android:layout_margin="3dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ah_tv_strike_updated" />
+            </TableRow>
+
+            <TableRow>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="3dp"
+                    android:adjustViewBounds="true"
+                    android:src="@mipmap/strike_today" />
+
+                <TextView
+                    android:layout_margin="3dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ah_tv_strike_today" />
+            </TableRow>
+
+            <TableRow>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="3dp"
+                    android:adjustViewBounds="true"
+                    android:src="@mipmap/strike_coming" />
+
+                <TextView
+                    android:layout_margin="3dp"
+                    android:gravity="left|center_vertical"
+                    android:text="@string/ah_tv_strike_coming" />
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
+</ScrollView>

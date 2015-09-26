@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- generic info -->
+    <string name="app_name">Há Greve?</string>
+
+    <string name="title_activity_settings">Configuração</string>
+    <string name="title_activity_companies">Empresas</string>
+    <string name="title_activity_strike_details">Detalhe de greve</string>
+    <string name="title_activity_about">Sobre nós</string>
+    <string name="title_activity_help">Ajuda</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!-- menu_main -->
+    <string name="action_settings">Configurar</string>
+    <string name="action_companies">Filtrar Empresas</string>
+    <string name="action_refresh_strikes">Actualizar</string>
+    <string name="action_about">Sobre nós</string>
+    <string name="action_help">Ajuda</string>
+
+    <!-- menu_companies -->
+    <string name="action_refresh_companies">Refrescar companhias</string>
+
+    <!-- activity_settings -->
+    <string name="as_tv_server_port">Nome do servidor e número do porto</string>
+    <string name="as_et_server_hint">nome do servidor</string>
+    <string name="as_et_port_hint">porto</string>
+    <string name="as_tv_reset_settings">Repor valores originais</string>
+    <string name="as_tv_alert_before">Pré-notificação:</string>
+    <string name="as_tv_alert_before_units">dias</string>
+    <string name="as_tv_alert_day">Notificar no dia:</string>
+    <string name="as_tv_sync_period">Sincronizar a cada:</string>
+    <string name="as_tv_sync_period_units">horas</string>
+    <string name="as_tv_all_notifications">Notificar sempre:</string>
+
+    <string name="as_btn_abort_settings">Cancelar</string>
+    <string name="as_btn_confirm_settings">Confirmar</string>
+
+    <!-- activity_main -->
+    <string name="am_msg_no_strikes">Woohoo!\nNão há greves, podemos ir trabalhar!\n:D\n\nQuando houver novos anúncios eles serão publicados aqui.\nPor favor verifique a conectividade Wi-Fi e seleccione Actualizar no menu.</string>
+    <string name="am_msg_cancelled">greve desconvocada</string>
+    <string name="am_msg_filterApplied">Atenção: Filtragem de empresas activada.</string>
+    <string name="am_msg_tap_twice">Repita o toque para sair.</string>
+
+    <!-- activity_main listView row -->
+    <string name="StrikeLogo">Logotipo da firma</string>
+
+    <!-- activity_strike_details -->
+    <string name="asd_tvw_from_lbl">Início:</string>
+    <string name="asd_tvw_to_lbl">Fim:</string>
+    <string name="asd_tvw_company_lbl">Empresa:</string>
+    <string name="asd_tvw_description_lbl">Descrição:</string>
+    <string name="asd_btn_Ok">Ok</string>
+    <string name="asd_btn_browser">Internet</string>
+    <string name="asd_btn_calendar">+ Calendário</string>
+    <string name="txt_strike_at">Greve em</string>
+    <string name="strikeCompany">Companhia da Greve</string>
+
+    <!-- activity_main -->
+    <string name="am_msg_no_companies">Não há registo de empresas.\n\nAs empresas registadas serão listadas aqui.\nPor favor verifique a conectividade Wi-Fi e seleccione Actualizar no menu.</string>
+
+    <!-- activity_about -->
+    <string name="aa_tv_intro">O desenvolvimento desta app resulta de um trabalho do semestre de Verão do ano lectivo 2014/2015 da unidade curricular de PDM do curso de LEIC do ISEL.\nO desenvolvimento é do grupo 04, composto por:</string>
+    <string name="aa_tv_license">Copyright (c) 2015 ABS+RC+PC</string>
+    <string name="aa_tv_license_text">
+        É dada permissão, livre de cargos, a qualquer pessoa de adquirir uma cópia deste software
+        e documentação associada (o "Software") e negociá-lo sem restrições, incluindo os direitos
+        de usar, copiar, modificar, fundir, publicar, distribuir, sub-licenciar e/ou vender
+        cópias do Software, sem restrições, permitindo ainda àqueles que recebem o Software
+        ter os mesmos direitos, sob as seguintes condições:\n
+        A declaração de direitos autorais dada acima deverá ser incluída em todas as cópias ou
+        partes substanciais do Software.\n
+        O Software é fornecido "no estado", sem garantias de qualquer tipo, sejam expressas ou
+        implicadas, incluindo mas não limitado às garantias de mercabilidade, adequação para um
+        propósito específico e não transgressão. Em caso algum serão os autores ou detentores
+        dos direitos autorais responsabilizados em alguma reclamação, danos ou em outras
+        obrigações, seja através de processos de contrato, por danos ou de outro tipo, devidos
+        a ou ligados ao Software ou ao uso ou outras transacções do Software.\n
+        Com excepção do contido no presente texto, a identificação dos autores não deve ser
+        divulgada, publicitada ou promovida por qualquer modo sem prévia autorização dos mesmos.
+    </string>
+
+    <!-- activity_help -->
+    <string name="ah_tv_notification_icons">Icones de notificação</string>
+    <string name="ah_tv_new_strike">Nova greve</string>
+    <string name="ah_tv_strike_cancelled">Greve cancelada</string>
+    <string name="ah_tv_strike_updated">Greve alterada</string>
+    <string name="ah_tv_strike_today">Greve hoje</string>
+    <string name="ah_tv_strike_coming">Greve próxima</string>
+
+    <!-- toasts -->
+    <string name="t_srv_unreachable">Sem ligação ao servidor.\nSugestões: Verifique a conectividade e a configuração.\nPor favor verifique a conectividade Wi-Fi.</string>
+    <string name="t_internal_err">Erro interno.</string>
+    <string name="t_excl_cmpns">São ignoradas as greves nas empresas seleccionadas.</string>
+
+</resources>
