@@ -25,8 +25,8 @@ import java.util.Arrays;
 
 import pt.isel.pdm.g04.se2_1.clientside.CsChoices;
 import pt.isel.pdm.g04.se2_1.clientside.bags.Choice;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defaults;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefaults;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 
 public class CompaniesActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -86,7 +86,7 @@ public class CompaniesActivity extends ActionBarActivity implements LoaderManage
         getLoaderManager().initLoader(COMPANIES_LOADER, null, this);
         mMessageReceiver = new CompaniesBroadcastReceiver();
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
-        mLocalBroadcastManager.registerReceiver(mMessageReceiver, new IntentFilter(G4Defaults.CHOICES_UPD));
+        mLocalBroadcastManager.registerReceiver(mMessageReceiver, new IntentFilter(HgDefaults.CHOICES_UPD));
     }
 
     @Override
@@ -98,21 +98,6 @@ public class CompaniesActivity extends ActionBarActivity implements LoaderManage
     // endregion LifeCycle
 
     // region Behaviour
-
-    private class CompaniesBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            int[] _choices = intent.getIntArrayExtra(G4Defaults.CHOICES_UPD_MSG);
-            for (int i = 0; i < mListView.getCount(); i++) {
-                Cursor _cursor = (Cursor) mListView.getItemAtPosition(i);
-                int _colId = _cursor.getColumnIndex(HgContract.Companies._ID);
-                Arrays.sort(_choices);
-                if (Arrays.binarySearch(_choices, _cursor.getInt(_colId)) >= 0) {
-                    mListView.setItemChecked(i, true);
-                }
-            }
-        }
-    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {switch (id) {
@@ -135,6 +120,21 @@ public class CompaniesActivity extends ActionBarActivity implements LoaderManage
         mAdapter.swapCursor(null);
     }
 
+    private class CompaniesBroadcastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context ctx, Intent intent) {
+            int[] _choices = intent.getIntArrayExtra(HgDefaults.CHOICES_UPD_MSG);
+            for (int i = 0; i < mListView.getCount(); i++) {
+                Cursor _cursor = (Cursor) mListView.getItemAtPosition(i);
+                int _colId = _cursor.getColumnIndex(HgContract.Companies._ID);
+                Arrays.sort(_choices);
+                if (Arrays.binarySearch(_choices, _cursor.getInt(_colId)) >= 0) {
+                    mListView.setItemChecked(i, true);
+                }
+            }
+        }
+    }
+
     private class OnItemClickListener implements AdapterView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -150,7 +150,7 @@ public class CompaniesActivity extends ActionBarActivity implements LoaderManage
                             new CsChoices(CompaniesActivity.this).insert_cbg(params[0]);
                         } catch (ParseException e) {
                             Toast.makeText(CompaniesActivity.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                            G4Log.e("ParseException occurred");
+                            HgLog.e("ParseException occurred");
                             e.printStackTrace();
                         }
                         return null;
@@ -164,7 +164,7 @@ public class CompaniesActivity extends ActionBarActivity implements LoaderManage
                             new CsChoices(CompaniesActivity.this).delete_cbg(params[0]);
                         } catch (ParseException e) {
                             Toast.makeText(CompaniesActivity.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                            G4Log.e("ParseException occurred");
+                            HgLog.e("ParseException occurred");
                             e.printStackTrace();
                         }
                         return null;

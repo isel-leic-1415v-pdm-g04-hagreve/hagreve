@@ -6,8 +6,8 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.Collection;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4Http;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
+import pt.isel.pdm.g04.se2_1.helpers.HgHttp;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
 
 /**
  * Project SE2-1, created on 2015/03/19.
@@ -52,8 +52,8 @@ public abstract class SsTemplate<T> implements ParseJsonFlow<T> {
     // region Private support methods
 
     private ParseJsonFlow<T> retrieveJson(String schemaAuthority, String command) throws IOException {
-        G4Log.i("Acessing server " + schemaAuthority);
-        mJson = (new G4Http(ctx, schemaAuthority, G4Http.URL_BASE_PATH, command)).getString();
+        HgLog.i("Acessing server " + schemaAuthority);
+        mJson = (new HgHttp(ctx, schemaAuthority, HgHttp.URL_BASE_PATH, command)).getString();
         return this;
     }
 
@@ -70,7 +70,7 @@ public abstract class SsTemplate<T> implements ParseJsonFlow<T> {
     }
 
     protected String defaultGetBaseUrl() {
-        return G4Http.buildBaseUrl(ctx);
+        return HgHttp.buildBaseUrl(ctx);
     }
 
     // endregion Protected support methods

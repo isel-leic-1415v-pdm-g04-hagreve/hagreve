@@ -34,13 +34,13 @@ import pt.isel.pdm.g04.se2_1.android3party.WakefulIntentService;
 import pt.isel.pdm.g04.se2_1.clientside.CsCompanies;
 import pt.isel.pdm.g04.se2_1.clientside.CsStrikes;
 import pt.isel.pdm.g04.se2_1.clientside.CsTemplate;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defaults;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
-import pt.isel.pdm.g04.se2_1.helpers.G4DisplayNotifications;
-import pt.isel.pdm.g04.se2_1.helpers.G4Http;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
-import pt.isel.pdm.g04.se2_1.helpers.G4SharedPreferences;
-import pt.isel.pdm.g04.se2_1.helpers.G4SyncRequirements;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefaults;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
+import pt.isel.pdm.g04.se2_1.helpers.HgDisplayNotifications;
+import pt.isel.pdm.g04.se2_1.helpers.HgHttp;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
+import pt.isel.pdm.g04.se2_1.helpers.HgSharedPreferences;
+import pt.isel.pdm.g04.se2_1.helpers.HgSyncRequirements;
 import pt.isel.pdm.g04.se2_1.helpers.jsonconversion.JsonConverterLogos;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 import pt.isel.pdm.g04.se2_1.provider.HgDbSchema;
@@ -53,7 +53,7 @@ import pt.isel.pdm.g04.se2_1.serverside.bags.HasId;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Logo;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Strike;
 
-import static pt.isel.pdm.g04.se2_1.helpers.G4Http.slashAppend;
+import static pt.isel.pdm.g04.se2_1.helpers.HgHttp.slashAppend;
 
 public class HaGreveServices extends WakefulIntentService {
 
@@ -63,7 +63,7 @@ public class HaGreveServices extends WakefulIntentService {
     public static final String ACTION_GET_COMPANIES = "pt.isel.pdm.g04.se2_1.action.GET_COMPANIES";
     public static final String ACTION_CHECK_STRIKES = "pt.isel.pdm.g04.se2_1.action.CHECK_STRIKES";
 
-    public static final String LOGOS_BASEURL = G4Http.LOGO_SERVER;
+    public static final String LOGOS_BASEURL = HgHttp.LOGO_SERVER;
     public static final String LOGOS_PATH = "";
 
     //endregion
@@ -114,8 +114,8 @@ public class HaGreveServices extends WakefulIntentService {
     // region Behaviour
 
     public static void startActionCheckStrikesInAdvance(Context ctx, boolean fromTomorrow) {
-        int _until = G4SharedPreferences.getDefault(ctx).
-                getInt(SettingsActivity.SP_PRE_NOTIFICATION, G4Defaults.PRE_NOTIFICATION);
+        int _until = HgSharedPreferences.getDefault(ctx).
+                getInt(SettingsActivity.SP_PRE_NOTIFICATION, HgDefaults.PRE_NOTIFICATION);
         startActionCheckStrikes(ctx, fromTomorrow ? 1 : _until, _until);
     }
 
@@ -124,8 +124,8 @@ public class HaGreveServices extends WakefulIntentService {
     // region Old Gets (for All companies)
 
     public static void startActionCheckStrikesToday(Context ctx) {
-        boolean _isCheckStrikes = G4SharedPreferences.getDefault(ctx).
-                getBoolean(SettingsActivity.SP_DAILY_NOTIFICATION, G4Defaults.DAY_NOTIFICATION);
+        boolean _isCheckStrikes = HgSharedPreferences.getDefault(ctx).
+                getBoolean(SettingsActivity.SP_DAILY_NOTIFICATION, HgDefaults.DAY_NOTIFICATION);
         if (_isCheckStrikes) startActionCheckStrikes(ctx, 0, 0);
     }
 
@@ -140,35 +140,29 @@ public class HaGreveServices extends WakefulIntentService {
 
     @Override
     protected void doWakefulWork(Intent intent) {
-        G4Log.i("HaGreveServices.onHandleIntent");
-        boolean _isBypass = intent.getBooleanExtra("bypass", false);
-        boolean _notify = !_isBypass || G4SharedPreferences.getDefault(this)
-                .getBoolean(SettingsActivity.SP_NOTIFY_ALWAYS, G4Defaults.NOTIFY_ALWAYS);
-        if (intent == null ||
-                !G4SyncRequirements.isOk(this, G4SyncRequirements.WIFI &
-                        (_isBypass ? ~0 : G4SyncRequirements.BATTERY))) {
-            G4Log.i("Server sync blocked: Battery low, no wifi connection... or internal error.");
-            return;
-        }
+        if (intent == null) return;
 
-        switch (intent.getAction()) {
+        boolean _isBypass = intent.getBooleanExtra("bypass", false);
+
+        if (!HgSyncRequirements.isOk(this, HgSyncRequirements.WIFI &
+                        (_isBypass ? ~0 : HgSyncRequirements.BATTERY))) return;
+
+        String action = intent.getAction();
+        if (action == null) return;
+
+        switch (action) {
             case ACTION_GET_COMPANIES_AND_STRIKES:
-                G4Log.i("HaGreveServices.onHandleIntent -> ACTION_GET_STRIKES");
-//                new HandleActionGetCompanies().doWork();
-//                new HandleActionGetStrikes().doWork(_notify);
                 handleActionStrikes();
                 break;
             case ACTION_GET_COMPANIES:
-                G4Log.i("HaGreveServices.onHandleIntent -> ACTION_GET_COMPANIES");
                 new HandleActionGetCompanies().doWork();
                 break;
             case ACTION_CHECK_STRIKES:
-                G4Log.i("HaGreveServices.onHandleIntent -> ACTION_CHECK_STRIKES");
-                int _defaultUntil = G4SharedPreferences.getDefaultTag(this,
-                        SettingsActivity.SP_PRE_NOTIFICATION, G4Defaults.PRE_NOTIFICATION);
+                int _defaultUntil = HgSharedPreferences.getDefaultTag(this,
+                        SettingsActivity.SP_PRE_NOTIFICATION, HgDefaults.PRE_NOTIFICATION);
                 int _until = intent.getIntExtra("until", _defaultUntil);
-                int _defaultFrom = G4SharedPreferences.getDefaultTag(this,
-                        SettingsActivity.SP_PRE_NOTIFICATION_TYPE, G4Defaults.PRE_NOTIFICATION_RANGE) ?
+                int _defaultFrom = HgSharedPreferences.getDefaultTag(this,
+                        SettingsActivity.SP_PRE_NOTIFICATION_TYPE, HgDefaults.PRE_NOTIFICATION_RANGE) ?
                         1 : _until;
                 int _from = intent.getIntExtra("from", _defaultFrom);
                 new HandleActionCheckStrikes().doWork(_from, _until);
@@ -196,7 +190,7 @@ public class HaGreveServices extends WakefulIntentService {
 
     private void handleActionLogos(Set<Integer> ids, boolean forceUpdate) {
         try {
-            String _jsonString = new G4Http(this, LOGOS_BASEURL, LOGOS_PATH, null).getString();
+            String _jsonString = new HgHttp(this, LOGOS_BASEURL, LOGOS_PATH, null).getString();
             JSONObject _jsonObject = new JSONObject(_jsonString);
             Date _serverLastUpdate = toDate(_jsonObject.getString("last_update"));
             Date _logosUpdateTimestamp = getTimestamp(LOGOS_TIMESTAMP);
@@ -205,7 +199,7 @@ public class HaGreveServices extends WakefulIntentService {
             Collection<Logo> _logos = new JsonConverterLogos(this).toCollection(_jsonArrayString);
             for (Logo logo : _logos) {
                 if (ids.contains(logo.id)) {
-                    String _logoJsonString = new G4Http(this, LOGOS_BASEURL, LOGOS_PATH, logo.path_link).getString();
+                    String _logoJsonString = new HgHttp(this, LOGOS_BASEURL, LOGOS_PATH, logo.path_link).getString();
                     JSONObject _logoJsonObject = new JSONObject(_logoJsonString);
                     Date _logoServerLastUpdate = toDate(_logoJsonObject.getString("last_update"));
                     if (! forceUpdate && _logosUpdateTimestamp.compareTo(_logoServerLastUpdate) >= 0) continue;
@@ -222,9 +216,9 @@ public class HaGreveServices extends WakefulIntentService {
                             continue;
                         }
                     }
-                    Bitmap _logo = new G4Http(this, LOGOS_BASEURL, LOGOS_PATH, slashAppend(logo.path_link, _logoFile)).getBitMap();
+                    Bitmap _logo = new HgHttp(this, LOGOS_BASEURL, LOGOS_PATH, slashAppend(logo.path_link, _logoFile)).getBitMap();
                     if (_logo != null) {
-                        Bitmap _banner = new G4Http(this, LOGOS_BASEURL, LOGOS_PATH, slashAppend(logo.path_link, _bannerFile)).getBitMap();
+                        Bitmap _banner = new HgHttp(this, LOGOS_BASEURL, LOGOS_PATH, slashAppend(logo.path_link, _bannerFile)).getBitMap();
                         if (_banner != null) {
                             getContentResolver().delete(HgContract.Logos.CONTENT_URI,
                                     HgContract.Logos._ID + " = ?",
@@ -274,7 +268,7 @@ public class HaGreveServices extends WakefulIntentService {
             handleActionLogos(_currentCompanies, false);
         } catch (RemoteException | OperationApplicationException e) {
             Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-            G4Log.e("RemoteException occurred");
+            HgLog.e("RemoteException occurred");
             e.printStackTrace();
         }
     }
@@ -283,12 +277,13 @@ public class HaGreveServices extends WakefulIntentService {
         try {
             Collection<Strike> _ssItems = new SsSchStrikes(this).retrieveJson().parseJson();
             if (_ssItems == null) return false;
+
             Collection<Strike> _itemsToReplace = new LinkedList<>(), _itemsToInsert = new LinkedList<>();
             CsStrikes _csHandler = new CsStrikes(this);
             Map<Integer, Strike> _csMap = new HashMap<>(), _itemsToDelete = new HashMap<>();
-            DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
-            Collection<Strike> _csItems = _csHandler.load_cbg(HgContract.Strikes.DATE_TO + " >= ?", new String[]{df.format(new Date())});
+            DateFormat df = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT);
             Set<Integer> _blockedCompanies = getBlockedCompanies();
+            Collection<Strike> _csItems = _csHandler.load_cbg(HgContract.Strikes.DATE_TO + " >= ?", new String[]{df.format(new Date())});
             for (Strike item : _csItems) {
                 _csMap.put(item.getId(), item);
                 _itemsToDelete.put(item.getId(), item);
@@ -299,7 +294,7 @@ public class HaGreveServices extends WakefulIntentService {
                 int _id = item.company.id;
                 if (_blockedCompanies.contains(_id)) continue;
                 if (!_ssCompanies.containsKey(_id)) _ssCompanies.put(_id, item.company);
-                if (item.end_date.compareTo(_now) >= 0) {
+                if (item.endDate.compareTo(_now) >= 0) {
                     _id = item.id;
                     if (!_csMap.containsKey(_id)) {
                         _itemsToInsert.add(item);
@@ -325,22 +320,22 @@ public class HaGreveServices extends WakefulIntentService {
             if (_isToDelete) _csHandler.prepareDeleteBatch(_itemsToDelete.values(), _strikesOps);
             if (_isToReplace) {
                 _csHandler.prepareUpdateBatch(_itemsToReplace, _strikesOps);
-                G4DisplayNotifications.notify(HaGreveServices.this, _itemsToReplace, G4DisplayNotifications.STRIKE_UPDATED);
+                HgDisplayNotifications.notify(HaGreveServices.this, _itemsToReplace, HgDisplayNotifications.STRIKE_UPDATED);
             }
             if (_isToInsert) {
                 _csHandler.prepareInsertBatch(_itemsToInsert, _strikesOps);
-                G4DisplayNotifications.notify(HaGreveServices.this, _itemsToInsert, G4DisplayNotifications.NEW_STRIKE);
+                HgDisplayNotifications.notify(HaGreveServices.this, _itemsToInsert, HgDisplayNotifications.NEW_STRIKE);
             }
             try {
                 getContentResolver().applyBatch(HgContract.AUTHORITY, _strikesOps);
             } catch (RemoteException | OperationApplicationException e) {
                 Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("RemoteException occurred");
+                HgLog.e("RemoteException occurred");
                 e.printStackTrace();
             }
         } catch (IOException | ParseException e) {
             Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-            G4Log.e("IOException or ParseException occurred");
+            HgLog.e("IOException or ParseException occurred");
             e.printStackTrace();
         }
         return true;
@@ -362,7 +357,7 @@ public class HaGreveServices extends WakefulIntentService {
     }
 
     private void setTimestamp(String tag) {
-        G4SharedPreferences.getDefault(this).edit().putLong(tag, new Date().getTime()).commit();
+        HgSharedPreferences.getDefault(this).edit().putLong(tag, new Date().getTime()).commit();
     }
 
     // endregion
@@ -370,11 +365,11 @@ public class HaGreveServices extends WakefulIntentService {
     // region Check
 
     private Date getTimestamp(String tag) {
-        return new Date(G4SharedPreferences.getDefault(this).getLong(tag, 0));
+        return new Date(HgSharedPreferences.getDefault(this).getLong(tag, 0));
     }
 
     private Date toDate(String dateString) {
-        DateFormat _df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
+        DateFormat _df = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT);
         Date _date;
         try {
             _date = _df.parse(dateString);
@@ -395,7 +390,7 @@ public class HaGreveServices extends WakefulIntentService {
     // region internal support methods
 
     private int compareTimestamp(String tag, Date date) {
-        long _storedDateLong = G4SharedPreferences.getDefault(this).getLong(tag, 0);
+        long _storedDateLong = HgSharedPreferences.getDefault(this).getLong(tag, 0);
         Date _storedDate = new Date(_storedDateLong);
         int _comparison = _storedDate.compareTo(date);
         return _comparison;
@@ -415,7 +410,7 @@ public class HaGreveServices extends WakefulIntentService {
 
         @Override
         protected boolean isAcceptable(Strike item) {
-            return item.end_date.compareTo(new Date()) >= 0;
+            return item.endDate.compareTo(new Date()) >= 0;
         }
 
         @Override
@@ -425,7 +420,7 @@ public class HaGreveServices extends WakefulIntentService {
 
         @Override
         protected String[] getCsSelectionArguments() {
-            DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
+            DateFormat df = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT);
             return new String[]{df.format(new Date())};
         }
     }
@@ -502,7 +497,7 @@ public class HaGreveServices extends WakefulIntentService {
                 int _toDeleteCount = _toDelete.size();
                 int _toReplaceCount = _toReplace.size();
                 int _toInsertCount = _toInsert.size();
-                G4Log.i("to delete: " + _toDeleteCount +
+                HgLog.i("to delete: " + _toDeleteCount +
                         "; to replace: " + _toReplaceCount +
                         "; to insert: " + _toInsertCount +
                         ".");
@@ -516,28 +511,28 @@ public class HaGreveServices extends WakefulIntentService {
                     _csItems.prepareUpdateBatch(_toReplace, ops);
                     if (isNotify) {
                         Collection<Strike> _filteredStrikes = getFilteredStrikes(_toReplace, _blockedCompanies);
-                        G4DisplayNotifications.notify(HaGreveServices.this, _filteredStrikes,
-                                G4DisplayNotifications.STRIKE_UPDATED);
+                        HgDisplayNotifications.notify(HaGreveServices.this, _filteredStrikes,
+                                HgDisplayNotifications.STRIKE_UPDATED);
                     }
                 }
                 if (_isToInsert) {
                     _csItems.prepareInsertBatch(_toInsert, ops);
                     if (isNotify) {
-                        G4DisplayNotifications.notify(HaGreveServices.this, (Collection<Strike>) _toInsert,
-                                G4DisplayNotifications.NEW_STRIKE);
+                        HgDisplayNotifications.notify(HaGreveServices.this, (Collection<Strike>) _toInsert,
+                                HgDisplayNotifications.NEW_STRIKE);
                     }
                 }
                 try {
                     getContentResolver().applyBatch(HgContract.AUTHORITY, ops);
                 } catch (RemoteException | OperationApplicationException e) {
                     Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                    G4Log.e("RemoteException occurred");
+                    HgLog.e("RemoteException occurred");
                     e.printStackTrace();
                 }
                 _result = _isToDelete || _isToReplace || _isToInsert;
             } catch (IOException | ParseException e) {
                 Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("IOException or ParseException occurred");
+                HgLog.e("IOException or ParseException occurred");
                 e.printStackTrace();
             }
             return _result;
@@ -547,7 +542,7 @@ public class HaGreveServices extends WakefulIntentService {
     private class HandleActionCheckStrikes {
         protected boolean doWork(int countFrom, int countUntil) {
             if (countFrom > countUntil + 1) throw new IllegalArgumentException();
-            DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT, Locale.US);
+            DateFormat df = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT, Locale.US);
             Calendar cal = Calendar.getInstance();
             cal.set(Calendar.HOUR_OF_DAY, 0);
             cal.set(Calendar.MINUTE, 0);
@@ -573,20 +568,20 @@ public class HaGreveServices extends WakefulIntentService {
                         new String[]{df.format(_end), df.format(_begin), String.valueOf(_notificationType)},
                         null);
                 _result = _cursor.getCount() > 0;
-                if (!_result) G4Log.i("-No Strikes until " + df.format(_end));
+                if (!_result) HgLog.i("-No Strikes until " + df.format(_end));
                 while (_cursor.moveToNext()) {
                     Strike _strike = null;
                     _strike = Strike.build(HaGreveServices.this, _cursor);
                     int _icon = _notificationType == STRIKE_COMING ?
-                            G4DisplayNotifications.STRIKE_COMING :
-                            G4DisplayNotifications.STRIKE_TODAY;
-                    G4DisplayNotifications.notify(HaGreveServices.this, _strike, _icon);
+                            HgDisplayNotifications.STRIKE_COMING :
+                            HgDisplayNotifications.STRIKE_TODAY;
+                    HgDisplayNotifications.notify(HaGreveServices.this, _strike, _icon);
                     _notifiedStrikes.add(_strike);
-                    G4Log.i("Strike on " + _strike.company.name + " stating at " + df.format(_strike.start_date));
+                    HgLog.i("Strike on " + _strike.company.name + " stating at " + df.format(_strike.startDate));
                 }
             } catch (ParseException e) {
                 Toast.makeText(HaGreveServices.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("ParseException occurred");
+                HgLog.e("ParseException occurred");
                 e.printStackTrace();
                 return false;
             } finally {

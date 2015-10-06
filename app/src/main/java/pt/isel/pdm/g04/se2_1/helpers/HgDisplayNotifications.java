@@ -19,10 +19,7 @@ import pt.isel.pdm.g04.se2_1.StrikeDetailsActivity;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Strike;
 
-/**
- * Project SE2-1, created on 2015/04/23.
- */
-public class G4DisplayNotifications {
+public class HgDisplayNotifications {
 
     public static final int DEFAULT_SITUATION = R.drawable.ic_stat_strike;
     public static final int NEW_STRIKE = R.drawable.ic_stat_new_strike;
@@ -30,6 +27,7 @@ public class G4DisplayNotifications {
     public static final int STRIKE_UPDATED = R.drawable.ic_stat_strike_updated;
     public static final int STRIKE_TODAY = R.drawable.ic_stat_strike_today;
     public static final int STRIKE_COMING = R.drawable.ic_stat_strike_coming;
+    static int ref = 0;
 
     public static void notify(Context ctx, Collection<Strike> items) {
         notify(ctx, items, DEFAULT_SITUATION);
@@ -39,7 +37,6 @@ public class G4DisplayNotifications {
         for (Strike item : items) notify(ctx, item, situation);
     }
 
-    static int ref = 0;
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public static void notify(Context ctx, Strike strike, int situation) {
         if (situation == STRIKE_TODAY && strike.canceled) return;

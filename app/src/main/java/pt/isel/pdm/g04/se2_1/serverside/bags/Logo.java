@@ -8,11 +8,10 @@ import java.io.ByteArrayOutputStream;
 
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 
-/**
- * Project se2-1, created on 2015/05/12.
- */
 public class Logo {
-    public final int id, path_link;
+
+    public final int id;
+    public final int path_link;
     public final String name_hint;
 
     public Logo(int id, int path_link, String name_hint) {
@@ -22,12 +21,12 @@ public class Logo {
     }
 
     public static ContentValues toContentValues(Logo logo, Bitmap logoImage, Bitmap bannerImage) {
-        ContentValues _contentValues = new ContentValues();
-        _contentValues.put(HgContract.Logos._ID, logo.id);
-        _contentValues.put(HgContract.Logos.SOURCEID, logo.path_link);
-        _contentValues.put(HgContract.Logos.LOGO, toByteArray(logoImage));
-        _contentValues.put(HgContract.Logos.BANNER, toByteArray(bannerImage));
-        return _contentValues;
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(HgContract.Logos._ID, logo.id);
+        contentValues.put(HgContract.Logos.SOURCEID, logo.path_link);
+        contentValues.put(HgContract.Logos.LOGO, toByteArray(logoImage));
+        contentValues.put(HgContract.Logos.BANNER, toByteArray(bannerImage));
+        return contentValues;
     }
 
     private static byte[] toByteArray(Bitmap bitmap) {

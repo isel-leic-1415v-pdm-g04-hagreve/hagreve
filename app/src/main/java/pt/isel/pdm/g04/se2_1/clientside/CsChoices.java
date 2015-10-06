@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import pt.isel.pdm.g04.se2_1.clientside.bags.Choice;
-import pt.isel.pdm.g04.se2_1.helpers.G4Broadcast;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defaults;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
-import pt.isel.pdm.g04.se2_1.helpers.G4Util;
+import pt.isel.pdm.g04.se2_1.helpers.HgBroadcast;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefaults;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
+import pt.isel.pdm.g04.se2_1.helpers.HgUtil;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 
 /**
@@ -62,10 +62,10 @@ public class CsChoices extends CsTemplate<Choice> {
 
     @Override
     protected void postAction(Context ctx, int status) {
-        G4Broadcast.send(ctx,
-                G4Defaults.CHOICES_SEL,
-                G4Defaults.CHOICES_SEL_MSG,
-                status > 0 ? G4Defaults.DISPLAY : G4Defaults.HIDE
+        HgBroadcast.send(ctx,
+                HgDefaults.CHOICES_SEL,
+                HgDefaults.CHOICES_SEL_MSG,
+                status > 0 ? HgDefaults.DISPLAY : HgDefaults.HIDE
         );
     }
 
@@ -86,14 +86,14 @@ public class CsChoices extends CsTemplate<Choice> {
                 try {
                     return load_cbg(null, new String[0]);
                 } catch (ParseException e) {
-                    G4Log.e("ParseException - returning an empty collection");
+                    HgLog.e("ParseException - returning an empty collection");
                     e.printStackTrace();
                     return new ArrayList<>();
                 }
             }
             @Override
             protected void onPostExecute(Collection<Choice> values) {
-                notifyListeners(G4Defaults.CHOICES_UPD, G4Defaults.CHOICES_UPD_MSG, G4Util.toIntArray(values));
+                notifyListeners(HgDefaults.CHOICES_UPD, HgDefaults.CHOICES_UPD_MSG, HgUtil.toIntArray(values));
             }
         }.execute();
     }
@@ -103,10 +103,10 @@ public class CsChoices extends CsTemplate<Choice> {
             @Override
             protected Void doInBackground(Void... noParams) {
                 try {
-                    notifyListeners(G4Defaults.CHOICES_SEL, G4Defaults.CHOICES_SEL_MSG,
-                            load_cbg(null, new String[0]).size() > 0 ? G4Defaults.DISPLAY : G4Defaults.HIDE);
+                    notifyListeners(HgDefaults.CHOICES_SEL, HgDefaults.CHOICES_SEL_MSG,
+                            load_cbg(null, new String[0]).size() > 0 ? HgDefaults.DISPLAY : HgDefaults.HIDE);
                 } catch (ParseException e) {
-                    notifyListeners(G4Defaults.CHOICES_SEL, G4Defaults.CHOICES_SEL_MSG, G4Defaults.HIDE);
+                    notifyListeners(HgDefaults.CHOICES_SEL, HgDefaults.CHOICES_SEL_MSG, HgDefaults.HIDE);
                     e.printStackTrace();
                 }
                 return null;

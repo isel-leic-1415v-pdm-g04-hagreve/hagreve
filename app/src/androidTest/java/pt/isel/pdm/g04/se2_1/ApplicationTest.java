@@ -4,13 +4,13 @@ import android.test.suitebuilder.annotation.SmallTest;
 
 import org.junit.Test;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static pt.isel.pdm.g04.se2_1.helpers.G4Http.slashEnd;
-import static pt.isel.pdm.g04.se2_1.helpers.G4Http.unslashEnd;
-import static pt.isel.pdm.g04.se2_1.helpers.G4Util.generateRandom;
+import static pt.isel.pdm.g04.se2_1.helpers.HgHttp.slashEnd;
+import static pt.isel.pdm.g04.se2_1.helpers.HgHttp.unslashEnd;
+import static pt.isel.pdm.g04.se2_1.helpers.HgUtil.generateRandom;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
@@ -32,8 +32,8 @@ public class ApplicationTest {
 
     @SmallTest
     public void generateRandomRangeTest() {
-        assertTrue(generateRandom(G4Defs.SEC) <= 1);
-        assertTrue(generateRandom(2 * G4Defs.SEC) <= 2000);
+        assertTrue(generateRandom(HgDefs.SEC) <= 1);
+        assertTrue(generateRandom(2 * HgDefs.SEC) <= 2000);
     }
 
     @SmallTest

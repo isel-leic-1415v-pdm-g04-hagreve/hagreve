@@ -2,6 +2,7 @@ package pt.isel.pdm.g04.se2_1.serverside.bags;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.support.annotation.NonNull;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -12,13 +13,11 @@ import java.util.Locale;
 
 import pt.isel.pdm.g04.se2_1.R;
 import pt.isel.pdm.g04.se2_1.clientside.CsCompanies;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
 import pt.isel.pdm.g04.se2_1.provider.HgDbSchema;
 
-/**
- * Project SE2-1, created on 2015/03/18.
- */
 public class Strike extends HashMap<String, String> implements HasId, Comparable<Strike> {
+
     public final static String LBL_COMPANY = "company";
     public final static String LBL_DATES = "dates";
     public static final String LBL_MONTH_FROM = "month_from";
@@ -28,44 +27,45 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
     public static final String LBL_CANCELLED = "cancelled";
     public static final int STRIKE_VW = 0;
     public static final int UN_STRIKE_VW = 1;
+
     public final int id;
     public final Company company; // Descreve a empresa afectada pela greve.
     public final String description; // Uma descrição da greve ("This is a strike description.");
-    public final Date start_date, end_date; // Datas para o início e fim da greve ("2011-11-30 20:25:23");
-    public final String source_link; // URL da fonte dos dados ("http://example.com");
-    public final boolean all_day; // true se a greve for de dias inteiros (true)
+    public final Date startDate, endDate; // Datas para o início e fim da greve ("2011-11-30 20:25:23");
+    public final String sourceLink; // URL da fonte dos dados ("http://example.com");
+    public final boolean allDay; // true se a greve for de dias inteiros (true)
     public final boolean canceled; // true se a greve tiver sido cancelada (false);
     public final Submitter submitter; // Descreve o autor do aviso.
 
-    public Strike(Context ctx, int id, String description, Date start_date, Date end_date,
-                  String source_link, boolean all_day, boolean canceled, Submitter submitter,
+    public Strike(Context ctx, int id, String description, Date startDate, Date endDate,
+                  String sourceLink, boolean allDay, boolean canceled, Submitter submitter,
                   Company company) {
         this.id = id;
         this.description = description;
-        this.start_date = start_date;
-        this.end_date = end_date;
-        this.source_link = source_link;
-        this.all_day = all_day;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.sourceLink = sourceLink;
+        this.allDay = allDay;
         this.canceled = canceled;
         this.submitter = submitter;
         this.company = company;
 
-        SimpleDateFormat _dateFormat = new SimpleDateFormat(G4Defs.MONTHDAY_4_STRING_FORMAT, Locale.getDefault());
-        SimpleDateFormat _monthsDateFormat = new SimpleDateFormat(G4Defs.MONTH_3_STRING_FORMAT, Locale.getDefault());
-        SimpleDateFormat _daysDateFormat = new SimpleDateFormat(G4Defs.DAY_2_STRING_FORMAT, Locale.getDefault());
-        String _strikeFrom = _dateFormat.format(start_date);
-        String _strikeTo = _dateFormat.format(end_date);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(HgDefs.MONTHDAY_4_STRING_FORMAT, Locale.getDefault());
+        SimpleDateFormat monthsDateFormat = new SimpleDateFormat(HgDefs.MONTH_3_STRING_FORMAT, Locale.getDefault());
+        SimpleDateFormat daysDateFormat = new SimpleDateFormat(HgDefs.DAY_2_STRING_FORMAT, Locale.getDefault());
+        String strikeFrom = dateFormat.format(startDate);
+        String strikeTo = dateFormat.format(endDate);
 
         put(LBL_COMPANY, company.name);
-        put(LBL_DATES, _strikeFrom + (_strikeFrom.equals(_strikeTo) ? "" : " - " + _strikeTo));
-        put(LBL_MONTH_FROM, _monthsDateFormat.format(start_date));
-        put(LBL_DAY_FROM, _daysDateFormat.format(start_date));
-        if (_strikeFrom.equals(_strikeTo)) {
+        put(LBL_DATES, strikeFrom + (strikeFrom.equals(strikeTo) ? "" : " - " + strikeTo));
+        put(LBL_MONTH_FROM, monthsDateFormat.format(startDate));
+        put(LBL_DAY_FROM, daysDateFormat.format(startDate));
+        if (strikeFrom.equals(strikeTo)) {
             put(LBL_MONTH_TO, "");
             put(LBL_DAY_TO, "");
         } else {
-            put(LBL_MONTH_TO, _monthsDateFormat.format(end_date));
-            put(LBL_DAY_TO, _daysDateFormat.format(end_date));
+            put(LBL_MONTH_TO, monthsDateFormat.format(endDate));
+            put(LBL_DAY_TO, daysDateFormat.format(endDate));
         }
         put(LBL_CANCELLED, canceled ? ctx.getString(R.string.am_msg_cancelled) : "");
     }
@@ -87,36 +87,35 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
     // region Comparable
 
     public static Strike build(Context ctx, Cursor cursor) throws ParseException {
-        int _colId, _colCompany, _colDescription, _colSource_link, _colStart_date, _colEnd_date,
-                _colAll_day, _colCancelled, _colSubmitter;
+        int colId, colCompany, colDescription, colSource_link, colStartDate, colEndDate,
+                colAllDay, colCancelled, colSubmitter;
 
-        _colId = cursor.getColumnIndex(HgDbSchema.COL_ID);
-        _colCompany = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_COMPANY);
-        _colDescription = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DESCRIPTION);
-        _colSource_link = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SOURCE_LINK);
-        _colStart_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_FROM);
-        _colEnd_date = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_TO);
-        _colAll_day = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_ALL_DAY);
-        _colCancelled = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_CANCELLED);
-//        _colSubmitter = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SUBMITTER);
+        colId = cursor.getColumnIndex(HgDbSchema.COL_ID);
+        colCompany = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_COMPANY);
+        colDescription = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DESCRIPTION);
+        colSource_link = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SOURCE_LINK);
+        colStartDate = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_FROM);
+        colEndDate = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_DATE_TO);
+        colAllDay = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_ALL_DAY);
+        colCancelled = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_CANCELLED);
+//        colSubmitter = cursor.getColumnIndex(HgDbSchema.Strikes_vw.COL_SUBMITTER);
 
         Strike result = null;
-        DateFormat dateFormat = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT, Locale.getDefault());
-        int _id = cursor.getInt(_colId);
-        Company _company = new CsCompanies(ctx).load_cbg(Integer.parseInt(cursor.getString(_colCompany)));
-        String _description = cursor.getString(_colDescription);
-        String _source_link = cursor.getString(_colSource_link);
-        Date _start_date = dateFormat.parse(cursor.getString(_colStart_date));
-        Date _end_date = dateFormat.parse(cursor.getString(_colEnd_date));
-        boolean _all_day = cursor.getInt(_colAll_day) > 0;
-        boolean _cancelled = cursor.getInt(_colCancelled) > 0;
-        Submitter _submitter = null;
+        DateFormat dateFormat = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT, Locale.getDefault());
+        int id = cursor.getInt(colId);
+        Company company = new CsCompanies(ctx).load_cbg(Integer.parseInt(cursor.getString(colCompany)));
+        String description = cursor.getString(colDescription);
+        String source_link = cursor.getString(colSource_link);
+        Date startDate = dateFormat.parse(cursor.getString(colStartDate));
+        Date endDate = dateFormat.parse(cursor.getString(colEndDate));
+        boolean allDay = cursor.getInt(colAllDay) > 0;
+        boolean cancelled = cursor.getInt(colCancelled) > 0;
+        Submitter submitter = null;
 
-        result = builder()
-                .id(_id).company(_company).description(_description).source_link(_source_link)
-                .start_date(_start_date).end_date(_end_date).all_day(_all_day).cancelled(_cancelled)
-                .submitter(_submitter).build(ctx);
-        return result;
+        return builder()
+                .id(id).company(company).description(description).source_link(source_link)
+                .start_date(startDate).end_date(endDate).all_day(allDay).cancelled(cancelled)
+                .submitter(submitter).build(ctx);
     }
 
     // endregion Comparable
@@ -125,10 +124,10 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
 
     @Override
     public String toString() {
-        SimpleDateFormat _dateFormat = new SimpleDateFormat("MM-dd", Locale.getDefault());
-        String strikeFrom = _dateFormat.format(start_date);
-        String strikeTo = _dateFormat.format(end_date);
-        return strikeFrom + (strikeFrom.equals(strikeTo) ? "" : " -> " + strikeTo) + " -> " +
+        SimpleDateFormat dateFormat = new SimpleDateFormat(HgDefs.MONTHDAY_4_STRING_FORMAT, Locale.getDefault());
+        String strikeStart = dateFormat.format(startDate);
+        String strikeEnd = dateFormat.format(endDate);
+        return strikeStart + (strikeStart.equals(strikeEnd) ? "" : " -> " + strikeEnd) + " -> " +
                 company.name;
     }
 
@@ -138,17 +137,17 @@ public class Strike extends HashMap<String, String> implements HasId, Comparable
     }
 
     @Override
-    public int compareTo(Strike another) {
+    public int compareTo(@NonNull Strike another) {
         if (canceled != another.canceled) return canceled ? 1 : -1;
         if (id != another.id) return id - another.id;
-        if (all_day != another.all_day) return all_day ? 1 : -1;
+        if (allDay != another.allDay) return allDay ? 1 : -1;
         int _descriptionCompare = description.compareTo(another.description);
         if (_descriptionCompare != 0) return _descriptionCompare;
-        int _end_dateCompare = end_date.compareTo(another.end_date);
+        int _end_dateCompare = endDate.compareTo(another.endDate);
         if (_end_dateCompare != 0) return _end_dateCompare;
-        int _source_linkCompare = source_link.compareTo(another.source_link);
+        int _source_linkCompare = sourceLink.compareTo(another.sourceLink);
         if (_source_linkCompare != 0) return _source_linkCompare;
-        int _start_dateCompare = start_date.compareTo(another.start_date);
+        int _start_dateCompare = startDate.compareTo(another.startDate);
         if (_start_dateCompare != 0) return _start_dateCompare;
         int _companyCompare = company.compareTo(another.company);
         if (_companyCompare != 0) return _companyCompare;

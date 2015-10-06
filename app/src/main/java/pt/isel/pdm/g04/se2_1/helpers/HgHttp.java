@@ -16,10 +16,7 @@ import java.util.HashMap;
 
 import pt.isel.pdm.g04.se2_1.SettingsActivity;
 
-/**
- * Project SE2-1, created on 2015/03/18.
- */
-public class G4Http {
+public class HgHttp {
 
     public static final String LOGO_SERVER = "http://isel-leic-1415v-pdm-g04-hagreve.github.io/";
     public static final String URL_BASE_PATH = "api/v2/";
@@ -39,45 +36,25 @@ public class G4Http {
     private final Context ctx;
     private final String baseUrl, path, pathLeaf;
 
-    public G4Http(Context ctx, String baseUrl, String pathLeaf) {
+    public HgHttp(Context ctx, String baseUrl, String pathLeaf) {
         this.ctx = ctx;
         this.baseUrl = baseUrl;
         this.path = URL_BASE_PATH;
         this.pathLeaf = pathLeaf;
     }
 
-    public G4Http(Context ctx, String baseUrl, String path, int pathLeaf) {
+    public HgHttp(Context ctx, String baseUrl, String path, int pathLeaf) {
         this(ctx, baseUrl, path, String.valueOf(pathLeaf));
     }
 
-    public G4Http(Context ctx, String baseUrl, String path, String pathLeaf) {
+    public HgHttp(Context ctx, String baseUrl, String path, String pathLeaf) {
         this.ctx = ctx;
         this.baseUrl = baseUrl;
         this.path = path;
         this.pathLeaf = pathLeaf;
     }
 
-    public final String getString() throws IOException {
-        String _urlString = buildUrlGetString(ctx, baseUrl, path, pathLeaf);
-        try {
-            return getString(_urlString);
-        } catch (MalformedURLException e) {
-            G4Log.e("Internal application error. URL is malformed: " + _urlString);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public final Bitmap getBitMap() throws IOException {
-        String _urlString = buildUrlGetString(ctx, baseUrl, path, pathLeaf);
-        try {
-            return getBitMap(_urlString);
-        } catch (MalformedURLException e) {
-            G4Log.e("Internal application error. URL is malformed: " + _urlString);
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static final String getString(String _urlString) throws IOException, MalformedURLException {
+    public static final String getString(String _urlString) throws IOException {
         return getString(new URL(_urlString));
     }
 
@@ -115,7 +92,7 @@ public class G4Http {
     }
 
     public static String buildBaseUrl(Context ctx) {
-        SharedPreferences _sp = G4SharedPreferences.getDefault(ctx);
+        SharedPreferences _sp = HgSharedPreferences.getDefault(ctx);
         String _schema = getDefaultSchema(_sp);
         String _host = _sp.getString(SettingsActivity.SP_HOSTNAME, getDefaultHost(_sp));
         int _port = _sp.getInt(SettingsActivity.SP_PORT, getDefaultPort(_sp));
@@ -146,23 +123,43 @@ public class G4Http {
         return slashEnd(base) + path;
     }
 
-    // region Internal support methods
-
     private static String buildUrlGetString(Context ctx, String baseUrl, String path, String pathLeaf) {
         if (baseUrl == null) baseUrl = buildBaseUrl(ctx);
         return String.format("%s%s%s", baseUrl, path, pathLeaf == null ? "" : pathLeaf);
     }
 
     private static String getDefaultSchema(SharedPreferences sp) {
-        return G4SharedPreferences.getDefaultTag(sp, SettingsActivity.SP_SCHEMA, G4Defaults.SCHEMA);
+        return HgSharedPreferences.getDefaultTag(sp, SettingsActivity.SP_SCHEMA, HgDefaults.SCHEMA);
     }
 
+    // region Internal support methods
+
     private static String getDefaultHost(SharedPreferences sp) {
-        return G4SharedPreferences.getDefaultTag(sp, SettingsActivity.SP_HOSTNAME, G4Defaults.HOSTNAME);
+        return HgSharedPreferences.getDefaultTag(sp, SettingsActivity.SP_HOSTNAME, HgDefaults.HOSTNAME);
     }
 
     private static int getDefaultPort(SharedPreferences sp) {
-        return G4SharedPreferences.getDefaultTag(sp, SettingsActivity.SP_PORT, G4Defaults.PORT);
+        return HgSharedPreferences.getDefaultTag(sp, SettingsActivity.SP_PORT, HgDefaults.PORT);
+    }
+
+    public final String getString() throws IOException {
+        String _urlString = buildUrlGetString(ctx, baseUrl, path, pathLeaf);
+        try {
+            return getString(_urlString);
+        } catch (MalformedURLException e) {
+            HgLog.e("Internal application error. URL is malformed: " + _urlString);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public final Bitmap getBitMap() throws IOException {
+        String _urlString = buildUrlGetString(ctx, baseUrl, path, pathLeaf);
+        try {
+            return getBitMap(_urlString);
+        } catch (MalformedURLException e) {
+            HgLog.e("Internal application error. URL is malformed: " + _urlString);
+            throw new RuntimeException(e);
+        }
     }
 
     // endregion

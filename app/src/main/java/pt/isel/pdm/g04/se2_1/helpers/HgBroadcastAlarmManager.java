@@ -6,20 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
 
-import static pt.isel.pdm.g04.se2_1.helpers.G4Util.generateRandom;
+import static pt.isel.pdm.g04.se2_1.helpers.HgUtil.generateRandom;
 
-/**
- * Project SE2-1, created on 2015/04/28.
- */
-public class G4BroadcastAlarmManager {
+public class HgBroadcastAlarmManager {
 
-    public static final long DEFAULT_INITAL_DELAY = 12 * G4Defs.SEC;
+    public static final long DEFAULT_INITAL_DELAY = 12 * HgDefs.SEC;
 
     private final Context ctx;
     private final Intent intent;
     private final int requestCode;
 
-    public G4BroadcastAlarmManager(Context ctx, Intent intent, int requestCode) {
+    public HgBroadcastAlarmManager(Context ctx, Intent intent, int requestCode) {
         this.ctx = ctx;
         this.intent = intent;
         this.requestCode = requestCode;
@@ -30,7 +27,7 @@ public class G4BroadcastAlarmManager {
     }
 
     public void set(long interval) {
-        set(interval, DEFAULT_INITAL_DELAY, G4Defs.MILLISEC);
+        set(interval, DEFAULT_INITAL_DELAY, HgDefs.MILLISEC);
     }
 
     public void set(long interval, long units) {

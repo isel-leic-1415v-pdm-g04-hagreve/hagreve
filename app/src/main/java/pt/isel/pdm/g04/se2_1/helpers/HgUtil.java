@@ -9,14 +9,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 
 import pt.isel.pdm.g04.se2_1.BuildConfig;
 import pt.isel.pdm.g04.se2_1.serverside.bags.HasId;
 
-/**
- * Project SE2-1, created on 2015/04/17.
- */
-public class G4Util {
+public class HgUtil {
 
     public static <T extends HasId> int[] toIntArray(Collection<T> collection) {
         int[] _results = new int[collection.size()];
@@ -32,16 +30,16 @@ public class G4Util {
     }
 
     public static String dateFormat(String date) throws ParseException {
-        return dateFormat(date, G4Defs.MONTHDAY_5_STRING_FORMAT);
+        return dateFormat(date, HgDefs.MONTHDAY_5_STRING_FORMAT);
     }
 
     public static String dateFormat(String date, String targetFormat) throws ParseException {
-        return dateFormat(date, G4Defs.DATE_8_STRING_FORMAT, targetFormat);
+        return dateFormat(date, HgDefs.DATE_8_STRING_FORMAT, targetFormat);
     }
 
     public static String dateFormat(String date, String sourceFormat, String targetFormat) throws ParseException {
-        DateFormat _dateParser = new SimpleDateFormat(sourceFormat);
-        DateFormat _dateFormatter = new SimpleDateFormat(targetFormat);
+        DateFormat _dateParser = new SimpleDateFormat(sourceFormat, Locale.getDefault());
+        DateFormat _dateFormatter = new SimpleDateFormat(targetFormat, Locale.getDefault());
         return _dateFormatter.format(_dateParser.parse(date));
     }
 
@@ -63,7 +61,7 @@ public class G4Util {
     }
 
     public static void not4UiThread() {
-        if (BuildConfig.DEBUG && G4Util.isUiThread()) {
+        if (BuildConfig.DEBUG && HgUtil.isUiThread()) {
             throw new IllegalThreadStateException("This should not be Running on the UI thread!");
         }
     }

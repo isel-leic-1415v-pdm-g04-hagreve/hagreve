@@ -4,10 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-/**
- * Project SE2-1, created on 2015/04/16.
- */
-public class G4Broadcast {
+public class HgBroadcast {
 
     public static void send(Context ctx, String id, String label, int value) {
         Intent intent = new Intent(id);

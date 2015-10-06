@@ -1,9 +1,6 @@
 package pt.isel.pdm.g04.se2_1.helpers;
 
-/**
- * Project se2-1, created on 2015/05/05.
- */
-public interface G4Defs {
+public interface HgDefs {
 
     // region Time
     long MILLISEC = 1;

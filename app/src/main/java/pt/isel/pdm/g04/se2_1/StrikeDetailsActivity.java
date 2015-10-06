@@ -18,9 +18,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
-import pt.isel.pdm.g04.se2_1.helpers.G4Util;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
+import pt.isel.pdm.g04.se2_1.helpers.HgUtil;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Logo;
 
@@ -76,8 +76,8 @@ public class StrikeDetailsActivity extends Activity {
                 mDescription = _cursor.getString(_cursor.getColumnIndex(HgContract.StrikesDetails_vw.DESCRIPTION));
                 mCompanyBanner = Logo.toBitmap(_cursor.getBlob(_cursor.getColumnIndex(HgContract.StrikesDetails_vw.BANNER)));
 
-                mDateFromTextView.setText(G4Util.dateFormat(mDateFrom, G4Defs.DATE_8_STRING_FORMAT, G4Defs.DAYMONTH_5_STRING_FORMAT));
-                mDateToTextView.setText(G4Util.dateFormat(mDateTo, G4Defs.DATE_8_STRING_FORMAT, G4Defs.DAYMONTH_5_STRING_FORMAT));
+                mDateFromTextView.setText(HgUtil.dateFormat(mDateFrom, HgDefs.DATE_8_STRING_FORMAT, HgDefs.DAYMONTH_5_STRING_FORMAT));
+                mDateToTextView.setText(HgUtil.dateFormat(mDateTo, HgDefs.DATE_8_STRING_FORMAT, HgDefs.DAYMONTH_5_STRING_FORMAT));
                 mCompanyTextView.setText(mCompanyName);
                 mCancelledTextView.setText(mIsCancelled ? getString(R.string.am_msg_cancelled) : "");
                 mDescriptionTextView.setText(mDescription);
@@ -85,7 +85,7 @@ public class StrikeDetailsActivity extends Activity {
 //                G4ImageResources.setStrikeBanner(mCompanyName, mCompanyBannerImageView);
             } catch (ParseException e) {
                 Toast.makeText(this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("ParseException occurred");
+                HgLog.e("ParseException occurred");
                 e.printStackTrace();
             }
         }
@@ -101,7 +101,7 @@ public class StrikeDetailsActivity extends Activity {
     }
 
     public void calendarButtonClicked(View obj) {
-        DateFormat df = new SimpleDateFormat(G4Defs.DATETIME_14_STRING_FORMAT);
+        DateFormat df = new SimpleDateFormat(HgDefs.DATETIME_14_STRING_FORMAT);
         Intent _intent;
         try {
             _intent = new Intent(Intent.ACTION_INSERT)
@@ -120,7 +120,7 @@ public class StrikeDetailsActivity extends Activity {
             startActivity(_intent);
         } catch (ParseException e) {
             Toast.makeText(this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-            G4Log.e("ParseException occurred");
+            HgLog.e("ParseException occurred");
             e.printStackTrace();
         }
     }

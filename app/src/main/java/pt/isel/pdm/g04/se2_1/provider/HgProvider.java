@@ -17,11 +17,9 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4LoaderNotifications;
+import pt.isel.pdm.g04.se2_1.helpers.HgLoaderNotifications;
 
 /**
- * Project SE2-1, created on 2015/04/13.
- *
  * Acknowledgements:
  * The code organization to implement the content provider was based on the ideas of
  * Wolfram Rittmeyer exposed in his blog [Grokking Android - Getting Down to the Nitty Gritty of Android Development]
@@ -30,27 +28,12 @@ import pt.isel.pdm.g04.se2_1.helpers.G4LoaderNotifications;
  */
 public class HgProvider extends ContentProvider {
 
-    private final ThreadLocal<BatchBag> mBatchBag = new ThreadLocal<BatchBag>() {
-        public BatchBag batchBag;
-        @Override
-        protected BatchBag initialValue() {
-            batchBag = new BatchBag();
-            return batchBag;
-        }
-    };
-    private BatchBag mBag = mBatchBag.get();
-
-    private static final String UNEXPECTED_MATCH = "Internal error: Unexpected matcher match";
-    private static final String UNMATCHED_MATCH = "Internal error: Unmatched matcher match";
-
-    private Context mContext;
-//    private ContentResolver mContentResolver;
-
     protected static final int TIMEOUT_LST = 100;
     protected static final int TIMEOUT_OBJ = 101;
     protected static final int CHOICES_LST = 200;
     protected static final int CHOICES_OBJ = 201;
     protected static final int COMPANIES_LST = 300;
+//    private ContentResolver mContentResolver;
     protected static final int COMPANIES_OBJ = 301;
     protected static final int LOGOS_LST = 350;
     protected static final int LOGOS_OBJ = 351;
@@ -64,10 +47,10 @@ public class HgProvider extends ContentProvider {
     protected static final int NOTIFICATIONS_OBJ = 501;
     protected static final int UN_STRIKES_LST = 600;
     protected static final int UN_STRIKES_OBJ = 601;
-
-    private static final String UNIT = "/#";
-
     protected static final UriMatcher sUriMatcher;
+    private static final String UNEXPECTED_MATCH = "Internal error: Unexpected matcher match";
+    private static final String UNMATCHED_MATCH = "Internal error: Unmatched matcher match";
+    private static final String UNIT = "/#";
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -91,6 +74,17 @@ public class HgProvider extends ContentProvider {
         sUriMatcher.addURI(HgContract.AUTHORITY, HgContract.UnnotifiedStrikes_vw.RESOURCE + UNIT, UN_STRIKES_OBJ);
     }
 
+    private final ThreadLocal<BatchBag> mBatchBag = new ThreadLocal<BatchBag>() {
+        public BatchBag batchBag;
+
+        @Override
+        protected BatchBag initialValue() {
+            batchBag = new BatchBag();
+            return batchBag;
+        }
+    };
+    private BatchBag mBag = mBatchBag.get();
+    private Context mContext;
     private HgDbOpenHelper mDbHelper = null;
 
     @Override
@@ -409,10 +403,14 @@ public class HgProvider extends ContentProvider {
     }
 
     private void handleNotifications() {
-        if (mBag.isNotifyStrikes) G4LoaderNotifications.notifyChange(mContext, HgContract.Strikes.CONTENT_URI);
-        if (mBag.isNotifyStrikes_vw) G4LoaderNotifications.notifyChange(mContext, HgContract.Strikes_vw.CONTENT_URI);
-        if (mBag.isNotifyCompanies) G4LoaderNotifications.notifyChange(mContext, HgContract.Companies.CONTENT_URI);
-        if (mBag.isNotifyCompanies_vw) G4LoaderNotifications.notifyChange(mContext, HgContract.Companies_vw.CONTENT_URI);
+        if (mBag.isNotifyStrikes)
+            HgLoaderNotifications.notifyChange(mContext, HgContract.Strikes.CONTENT_URI);
+        if (mBag.isNotifyStrikes_vw)
+            HgLoaderNotifications.notifyChange(mContext, HgContract.Strikes_vw.CONTENT_URI);
+        if (mBag.isNotifyCompanies)
+            HgLoaderNotifications.notifyChange(mContext, HgContract.Companies.CONTENT_URI);
+        if (mBag.isNotifyCompanies_vw)
+            HgLoaderNotifications.notifyChange(mContext, HgContract.Companies_vw.CONTENT_URI);
     }
 
     class BatchBag {

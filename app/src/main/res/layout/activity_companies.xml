@@ -3,6 +3,14 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/companiesTitleTextView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/am_tvw_hide_companies"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
     <ListView android:id="@+id/companiesListView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

@@ -9,7 +9,7 @@ import com.google.gson.reflect.TypeToken;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Strike;
 import pt.isel.pdm.g04.se2_1.serverside.bags.StrikeLight;
 
@@ -23,7 +23,7 @@ public class JsonConverterStrikes extends JsonConverterWrapper<Strike> {
     public Collection<Strike> toCollection(String jsonString) {
         Collection<Strike> strikes = new LinkedList<>();
         Gson gson = new GsonBuilder()
-                .setDateFormat(G4Defs.DATETIME_12_STRING_FORMAT)
+                .setDateFormat(HgDefs.DATETIME_12_STRING_FORMAT)
                 .create();
         Collection<StrikeLight> strikesLight = gson
                 .fromJson(jsonString, new TypeToken<Collection<StrikeLight>>() {

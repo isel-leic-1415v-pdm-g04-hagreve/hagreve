@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import pt.isel.pdm.g04.se2_1.helpers.G4Broadcast;
-import pt.isel.pdm.g04.se2_1.helpers.G4Util;
+import pt.isel.pdm.g04.se2_1.helpers.HgBroadcast;
+import pt.isel.pdm.g04.se2_1.helpers.HgUtil;
 import pt.isel.pdm.g04.se2_1.provider.HgDbSchema;
 import pt.isel.pdm.g04.se2_1.serverside.bags.HasId;
 
@@ -62,14 +62,14 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public Uri insert_cbg(T item) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         ContentValues values = toContentValues(item);
         return contentResolver.insert(_uri, values);
     }
 
     public T load_cbg(int id) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         Cursor _cursor = contentResolver.query(_uri, getDefaultProjection(),
                 HgDbSchema.COL_ID + " = ?",
@@ -83,7 +83,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public Collection<T> load_cbg(String selection, String[] selectionArguments) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         Cursor _cursor = contentResolver.query(_uri, getDefaultProjection(), selection, selectionArguments, null);
         Collection<T> _collection = new ArrayList<>();
@@ -95,7 +95,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public int update_cbg(T item) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         ContentValues values = toContentValues(item);
         int _count;
@@ -107,7 +107,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public int replace_cbg(Collection<T> items) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         ContentValues[] contentValueses = toContentValuesArray(items);
         return contentResolver.bulkInsert(_uri, contentValueses);
@@ -132,7 +132,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public int delete_cbg(T item) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = Uri.withAppendedPath(getUri(), String.valueOf(item.getId()));
         return contentResolver.delete(_uri,
                 HgDbSchema.COL_ID + " = ?",
@@ -140,7 +140,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public int delete_cbg(Collection<T> items) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         int _count = 0;
         for (T item : items) _count += delete_cbg(item);
         return _count;
@@ -154,12 +154,12 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public void deleteAll_cbg() {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         contentResolver.delete(getUri(), null, null);
     }
 
     private void insertAll_cbg(Uri uri, ContentValues[] values) {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         contentResolver.bulkInsert(uri, values);
     }
 
@@ -171,7 +171,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public void upsert_cbg(Collection<T> collection) {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Uri _uri = getUri();
         ContentValues[] _contentValueses = toContentValuesArray(collection);
         insertAll_cbg(_uri, _contentValueses);
@@ -179,7 +179,7 @@ public abstract class CsTemplate<T extends HasId> {
     }
 
     public void update_cbg(Collection<T> collection) throws ParseException {
-        G4Util.not4UiThread();
+        HgUtil.not4UiThread();
         Collection<T> _toDelete = load_cbg(null, new String[0]);
         int _updated = 0;
         for (T item : collection) {
@@ -197,11 +197,11 @@ public abstract class CsTemplate<T extends HasId> {
     // region Implementation Helpers
 
     protected void notifyListeners(String id, String field, int value) {
-        G4Broadcast.send(ctx, id, field, value);
+        HgBroadcast.send(ctx, id, field, value);
     }
 
     protected void notifyListeners(String id, String field, int[] values) {
-        G4Broadcast.send(ctx, id, field, values);
+        HgBroadcast.send(ctx, id, field, values);
     }
 
     protected ContentValues[] toContentValuesArray(Collection<T> collection) {

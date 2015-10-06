@@ -11,8 +11,8 @@ import android.widget.Switch;
 
 import pt.isel.pdm.g04.se2_1.clientside.CsCompanies;
 import pt.isel.pdm.g04.se2_1.clientside.CsStrikes;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defaults;
-import pt.isel.pdm.g04.se2_1.helpers.G4SharedPreferences;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefaults;
+import pt.isel.pdm.g04.se2_1.helpers.HgSharedPreferences;
 
 public class SettingsActivity extends ActionBarActivity {
 
@@ -57,13 +57,13 @@ public class SettingsActivity extends ActionBarActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mSharedPreferences = G4SharedPreferences.getDefault(this);
-        mHostName = mSharedPreferences.getString(SP_HOSTNAME, G4Defaults.HOSTNAME);
-        mPortNumber = mSharedPreferences.getInt(SP_PORT, G4Defaults.PORT);
-        mPreNotification = mSharedPreferences.getInt(SP_PRE_NOTIFICATION, G4Defaults.PRE_NOTIFICATION);
-        mDailyNotification = mSharedPreferences.getBoolean(SP_DAILY_NOTIFICATION, G4Defaults.DAY_NOTIFICATION);
-        mSynchFrequency = mSharedPreferences.getInt(SP_SYNCHRONIZATION_FREQUENCY, G4Defaults.NOTIFICATION_FREQUENCY);
-        mNotifyAlways = mSharedPreferences.getBoolean(SP_NOTIFY_ALWAYS, G4Defaults.NOTIFY_ALWAYS);
+        mSharedPreferences = HgSharedPreferences.getDefault(this);
+        mHostName = mSharedPreferences.getString(SP_HOSTNAME, HgDefaults.HOSTNAME);
+        mPortNumber = mSharedPreferences.getInt(SP_PORT, HgDefaults.PORT);
+        mPreNotification = mSharedPreferences.getInt(SP_PRE_NOTIFICATION, HgDefaults.PRE_NOTIFICATION);
+        mDailyNotification = mSharedPreferences.getBoolean(SP_DAILY_NOTIFICATION, HgDefaults.DAY_NOTIFICATION);
+        mSynchFrequency = mSharedPreferences.getInt(SP_SYNCHRONIZATION_FREQUENCY, HgDefaults.NOTIFICATION_FREQUENCY);
+        mNotifyAlways = mSharedPreferences.getBoolean(SP_NOTIFY_ALWAYS, HgDefaults.NOTIFY_ALWAYS);
 
         mHostnameEditText = (EditText) findViewById(R.id.editTextHostname);
         mHostnameEditText.setText(mHostName);
@@ -110,6 +110,15 @@ public class SettingsActivity extends ActionBarActivity {
         }.execute(new OnStopBag());
     }
 
+    public void settingsResetButtonClick(View obj) {
+        mHostnameEditText.setText(HgDefaults.HOSTNAME);
+        mPortNumberEditText.setText(String.valueOf(HgDefaults.PORT));
+    }
+
+    // endregion LifeCycle
+
+    // region Behaviour
+
     private class OnStopBag {
         public final String hostName = String.valueOf(mHostnameEditText.getText());
         public final int portNumber = Integer.parseInt(String.valueOf(mPortNumberEditText.getText()));
@@ -122,15 +131,6 @@ public class SettingsActivity extends ActionBarActivity {
                 mDailyNotification != dailyNotification || mSynchFrequency != synchronizationFrequency ||
                 mNotifyAlways != notifyAlways;
         public final boolean isResyncRequired = mPortNumber != portNumber || ! mHostName.equals(hostName);
-    }
-
-    // endregion LifeCycle
-
-    // region Behaviour
-
-    public void settingsResetButtonClick(View obj) {
-        mHostnameEditText.setText(G4Defaults.HOSTNAME);
-        mPortNumberEditText.setText(String.valueOf(G4Defaults.PORT));
     }
 
     // endregion Behaviour

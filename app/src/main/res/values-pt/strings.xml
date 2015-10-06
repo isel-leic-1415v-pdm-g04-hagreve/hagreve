@@ -42,6 +42,7 @@
     <string name="am_msg_cancelled">greve desconvocada</string>
     <string name="am_msg_filterApplied">Atenção: Filtragem de empresas activada.</string>
     <string name="am_msg_tap_twice">Repita o toque para sair.</string>
+    <string name="am_tvw_hide_companies">Filtragem de empresas</string>
 
     <!-- activity_main listView row -->
     <string name="StrikeLogo">Logotipo da firma</string>

@@ -3,8 +3,6 @@ package pt.isel.pdm.g04.se2_1.provider;
 import android.provider.BaseColumns;
 
 /**
- * Project SE2-1, created on 2015/04/13.
- *
  * Acknowledgements:
  * The code organization to implement the content provider was based on the ideas of
  * Wolfram Rittmeyer exposed in his blog [Grokking Android - Getting Down to the Nitty Gritty of Android Development]

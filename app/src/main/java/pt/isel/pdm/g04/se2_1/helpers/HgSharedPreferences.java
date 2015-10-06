@@ -5,15 +5,12 @@ import android.content.SharedPreferences;
 
 import org.json.JSONException;
 
-/**
- * Project SE2-1, created on 2015/03/25.
- */
-public class G4SharedPreferences {
+public class HgSharedPreferences {
 
     // region public support methods
 
     public static SharedPreferences getDefault(Context ctx) {
-        return ctx.getSharedPreferences(G4Defaults.SHARED_PREFERENCES, Context.MODE_PRIVATE);
+        return ctx.getSharedPreferences(HgDefaults.SHARED_PREFERENCES, Context.MODE_PRIVATE);
     }
 
     // endregion public support methods
@@ -71,7 +68,6 @@ public class G4SharedPreferences {
 
     private static boolean isStoredString(SharedPreferences sharedPreferences, String key) {
         return sharedPreferences.contains(key);
-//        return sharedPreferences.getString(key, "").length() > 0;
     }
 
     // endregion String

@@ -33,9 +33,9 @@ import java.util.Locale;
 
 import pt.isel.pdm.g04.se2_1.android3party.WakefulIntentService;
 import pt.isel.pdm.g04.se2_1.clientside.CsChoices;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defaults;
-import pt.isel.pdm.g04.se2_1.helpers.G4Defs;
-import pt.isel.pdm.g04.se2_1.helpers.G4Log;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefaults;
+import pt.isel.pdm.g04.se2_1.helpers.HgDefs;
+import pt.isel.pdm.g04.se2_1.helpers.HgLog;
 import pt.isel.pdm.g04.se2_1.provider.HgContract;
 import pt.isel.pdm.g04.se2_1.serverside.bags.Logo;
 
@@ -56,7 +56,7 @@ import pt.isel.pdm.g04.se2_1.serverside.bags.Logo;
  * Main activity:
  *  > Próximas greves: http://hagreve.com/api/v2/strikes
  *  > Drilldown
- *  > Browser: source_link
+ *  > Browser: sourceLink
  *  > Calendário
  */
 
@@ -71,6 +71,7 @@ public class MainActivity extends ActionBarActivity
     private static final int STRIKES_LOADER = 0;
     private static final String[] sDataMap;
     private static final int[] sViewsMap;
+    private static final int BACKKEY_TIME_INTERVAL = 2 * (int) HgDefs.SEC;
 
     static {
 //        sDataMap = new String[]{HgContract.Strikes_vw.COMPANY, HgContract.Strikes_vw.CANCELLED,
@@ -84,8 +85,6 @@ public class MainActivity extends ActionBarActivity
                 R.id.dayTo_data, R.id.monthTo_data, R.id.list_image};
     }
 
-    private static final int BACKKEY_TIME_INTERVAL = 2 * (int) G4Defs.SEC;
-
     // non-static
     private TextView mWarningsTextView;
     private SimpleCursorAdapter mAdapter = null;
@@ -94,12 +93,26 @@ public class MainActivity extends ActionBarActivity
     // endregion
 
     // region Menus
+    // region Behaviour
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context ctx, Intent intent) {
+            int _visibility = intent.getIntExtra(HgDefaults.CHOICES_SEL_MSG, 0);
+            mWarningsTextView.setVisibility(
+                    _visibility == View.VISIBLE ? View.VISIBLE :
+                            _visibility == View.GONE ? View.GONE : View.INVISIBLE);
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+    // endregion Menus
+
+    // region LifeCycle
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -132,10 +145,6 @@ public class MainActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-    // endregion Menus
-
-    // region LifeCycle
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,7 +166,7 @@ public class MainActivity extends ActionBarActivity
         getLoaderManager().initLoader(STRIKES_LOADER, null, this);
 
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mReceiver, new IntentFilter(G4Defaults.CHOICES_SEL));
+                .registerReceiver(mReceiver, new IntentFilter(HgDefaults.CHOICES_SEL));
     }
 
     @Override
@@ -165,6 +174,10 @@ public class MainActivity extends ActionBarActivity
         super.onResume();
         new CsChoices(this).check();
     }
+
+    // endregion
+
+    // region Presentation
 
     @Override
     protected void onDestroy() {
@@ -174,16 +187,68 @@ public class MainActivity extends ActionBarActivity
 
     // endregion
 
-    // region Presentation
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case STRIKES_LOADER:
+                return new CursorLoader(this, HgContract.Strikes_vw.CONTENT_URI,
+                        HgContract.Strikes_vw.PROJECTION_ALL, null, null, null);
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Intent _intent = new Intent(this, StrikeDetailsActivity.class);
+        _intent.putExtra(StrikeDetailsActivity.EXTRA_URI,
+                Uri.withAppendedPath(HgContract.StrikesDetails_vw.CONTENT_URI, String.valueOf(id)).toString());
+        startActivity(_intent);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!HgDefaults.TAP_TWICE_TO_EXIT || timeBackKeyPressed + BACKKEY_TIME_INTERVAL > System.currentTimeMillis()) {
+            super.onBackPressed();
+            return;
+        }
+        Toast.makeText(getBaseContext(), getString(R.string.am_msg_tap_twice), Toast.LENGTH_SHORT).show();
+        timeBackKeyPressed = System.currentTimeMillis();
+    }
+
+    // region internal support methods
+    private void checkOnAppLogo(int logoId) {
+        Cursor _cursor = getContentResolver().query(HgContract.Logos.CONTENT_URI, null, HgContract.Logos._ID + " = ?", new String[]{"-1"}, null);
+        try {
+            if (!_cursor.moveToFirst()) {
+                Bitmap _bitmap = BitmapFactory.decodeResource(getResources(), logoId);
+                Logo _logo = new Logo(-1, -1, "HaGreve");
+                ContentValues _contentValues = Logo.toContentValues(_logo, _bitmap, _bitmap);
+                getContentResolver().insert(HgContract.Logos.CONTENT_URI, _contentValues);
+            }
+        } finally {
+            _cursor.close();
+        }
+    }
 
     private class CustomViewBinder implements SimpleCursorAdapter.ViewBinder {
 
         @Override
         public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-            DateFormat _str = new SimpleDateFormat(G4Defs.DATE_8_STRING_FORMAT, Locale.getDefault());
-            DateFormat _mmm = new SimpleDateFormat(G4Defs.MONTH_3_STRING_FORMAT, Locale.getDefault());
-            DateFormat _dd = new SimpleDateFormat(G4Defs.DAY_2_STRING_FORMAT, Locale.getDefault());
-            DateFormat _wd = new SimpleDateFormat(G4Defs.WDAY_STRING_FORMAT, Locale.getDefault());
+            DateFormat _str = new SimpleDateFormat(HgDefs.DATE_8_STRING_FORMAT, Locale.getDefault());
+            DateFormat _mmm = new SimpleDateFormat(HgDefs.MONTH_3_STRING_FORMAT, Locale.getDefault());
+            DateFormat _dd = new SimpleDateFormat(HgDefs.DAY_2_STRING_FORMAT, Locale.getDefault());
+            DateFormat _wd = new SimpleDateFormat(HgDefs.WDAY_STRING_FORMAT, Locale.getDefault());
             try {
                 String _value;
                 switch (view.getId()) {
@@ -225,7 +290,7 @@ public class MainActivity extends ActionBarActivity
                 }
             } catch (ParseException e) {
                 Toast.makeText(MainActivity.this, R.string.t_internal_err, Toast.LENGTH_SHORT).show();
-                G4Log.e("ParseException occurred");
+                HgLog.e("ParseException occurred");
                 e.printStackTrace();
             }
             return false;
@@ -234,78 +299,11 @@ public class MainActivity extends ActionBarActivity
 
     // endregion
 
-    // region Behaviour
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context ctx, Intent intent) {
-            int _visibility = intent.getIntExtra(G4Defaults.CHOICES_SEL_MSG, 0);
-            mWarningsTextView.setVisibility(
-                    _visibility == View.VISIBLE ? View.VISIBLE :
-                            _visibility == View.GONE ? View.GONE : View.INVISIBLE);
-        }
-    };
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        switch (id) {
-            case STRIKES_LOADER:
-                return new CursorLoader(this, HgContract.Strikes_vw.CONTENT_URI,
-                        HgContract.Strikes_vw.PROJECTION_ALL, null, null, null);
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        mAdapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mAdapter.swapCursor(null);
-    }
-
     private class CompaniesClickListener implements AdapterView.OnClickListener {
 
         @Override
         public void onClick(View v) {
             startActivity(new Intent(getBaseContext(), CompaniesActivity.class));
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent _intent = new Intent(this, StrikeDetailsActivity.class);
-        _intent.putExtra(StrikeDetailsActivity.EXTRA_URI,
-                Uri.withAppendedPath(HgContract.StrikesDetails_vw.CONTENT_URI, String.valueOf(id)).toString());
-        startActivity(_intent);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (timeBackKeyPressed + BACKKEY_TIME_INTERVAL > System.currentTimeMillis()) {
-            super.onBackPressed();
-            return;
-        }
-        Toast.makeText(getBaseContext(), getString(R.string.am_msg_tap_twice), Toast.LENGTH_SHORT).show();
-        timeBackKeyPressed = System.currentTimeMillis();
-    }
-
-    // endregion
-
-    // region internal support methods
-    private void checkOnAppLogo(int logoId) {
-        Cursor _cursor = getContentResolver().query(HgContract.Logos.CONTENT_URI, null, HgContract.Logos._ID + " = ?", new String[]{"-1"}, null);
-        try {
-            if (!_cursor.moveToFirst()) {
-                Bitmap _bitmap = BitmapFactory.decodeResource(getResources(), logoId);
-                Logo _logo = new Logo(-1, -1, "HaGreve");
-                ContentValues _contentValues = Logo.toContentValues(_logo, _bitmap, _bitmap);
-                getContentResolver().insert(HgContract.Logos.CONTENT_URI, _contentValues);
-            }
-        } finally {
-            _cursor.close();
         }
     }
     // endregion

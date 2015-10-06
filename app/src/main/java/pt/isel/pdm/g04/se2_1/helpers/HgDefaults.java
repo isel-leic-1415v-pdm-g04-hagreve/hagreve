@@ -2,10 +2,7 @@ package pt.isel.pdm.g04.se2_1.helpers;
 
 import android.view.View;
 
-/**
- * Project SE2-1, created on 2015/03/18.
- */
-public interface G4Defaults {
+public interface HgDefaults {
 
     // region Sharedpreferences
     String SHARED_PREFERENCES = "PDM_SE2-1";
@@ -19,7 +16,7 @@ public interface G4Defaults {
     int PRE_NOTIFICATION = 4;
     boolean PRE_NOTIFICATION_RANGE = true;
     boolean DAY_NOTIFICATION = true;
-    int NOTIFICATION_FREQUENCY = 6;
+    int NOTIFICATION_FREQUENCY = 24;
     boolean NOTIFY_ALWAYS = false;
     // endregion Service configuration
 
@@ -40,4 +37,8 @@ public interface G4Defaults {
     // region Battery
     int MIN_BATTERY_WORKING_LEVEL = 16; // Out of 100
     // endregion Battery
+
+    // region Exit
+    boolean TAP_TWICE_TO_EXIT = false;
+    // endregion
 }
